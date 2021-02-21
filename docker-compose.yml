@@ -2,8 +2,8 @@ version: '2'
 services:
   backend:
     build: ./
-    image: books-backend-service
-    container_name: books-backend-service
+    image: backend_simple
+    container_name: backend_simple
     environment:
       - PORT=3000
     ports:
