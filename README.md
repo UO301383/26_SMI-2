@@ -6,16 +6,6 @@ This repository contains an Express application implementing a very simple REST 
  - Express and its middlewares.
  - Testing with Mocha.
  
-# Usage
-
-You must follow these steps to start the server:
-
- 1. `npm install`
- 2. Depending on the configuration desired:
- 
-    - `npm start` to run the server in production mode.
-    - `npm test` to run the tests.
-  
 
 # Repository organization
 
@@ -29,3 +19,18 @@ The repository is organized in several directories:
     - `app/models`: contains the data models.
    
  - `/test`: contains the code of the tests.
+
+
+# Usage
+
+You must follow these steps to start the application in a local machine:
+
+ 1. Install the dependencies:
+  
+    - `npm install`
+
+ 2. Run the application in the local machine with the desired configuration::
+ 
+    - `npm start` to run the server in production mode.
+    - `npm test` to run the tests.
+  
