@@ -109,7 +109,7 @@ describe('Create books: ', () => {
     /**
      * A missing title should raise an error
      */
-    it('should receive an error with missing name', (done) => {
+    it('should receive an error with missing title', (done) => {
         chai.request(app)
             .post(BOOK_URI)
             .send({ author: "Unknown" })
