@@ -15,7 +15,7 @@ module.exports.create = async (req, res, next) => {
     res.status(201).json(book);
 };
 
-// Get an existing book
+// Get an existing book by id
 module.exports.get = async (req, res, next) => {
     // No validation needed
     const book = await Book.findById( req.params.id );
