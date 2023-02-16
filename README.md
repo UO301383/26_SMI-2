@@ -29,7 +29,7 @@ You must follow these steps to start the application in a local machine:
   
     - `npm install`
 
- 2. Run the application in the local machine with the desired configuration::
+ 2. Run the application in the local machine with the desired configuration:
  
     - `npm start` to run the server in production mode.
     - `npm test` to run the tests.
