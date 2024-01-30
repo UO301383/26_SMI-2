@@ -1,10 +1,10 @@
 version: '2'
 services:
-  backend:
-    build: ./
-    image: backend_simple
-    container_name: backend_simple
-    environment:
+  backend_simple: # backend_simple service
+    build: ./ # image is built from the configuration in ./Dockerfile (located in the current directory)
+    image: books-backend_simple-service
+    container_name: books-backend_simple-service
+    environment: # container variables
       - PORT=3000
-    ports:
+    ports: # container ports (right) redirected to host ports (left)
       - "3000:3000"
