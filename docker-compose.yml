@@ -6,5 +6,5 @@ services:
     container_name: books-backend_simple-service
     environment: # container variables
       - PORT=3000
-    ports: # container ports (right) redirected to host ports (left)
+    ports: # redirects to host ports (left) container ports (right)
       - "3000:3000"
