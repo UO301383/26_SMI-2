@@ -1,3 +1,5 @@
+// Book routes
+
 module.exports = app => {
     const controller = require("../controllers/book.controller");
     const validator = require('../middlewares/validators/book.validator');

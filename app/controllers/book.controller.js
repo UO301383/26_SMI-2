@@ -1,5 +1,7 @@
-const Book = require('../models/book.model');
+// Book controller
 
+// Import modules
+const Book = require('../models/book.model');
 
 // Retrieve all books
 module.exports.getAll = async (req, res, next) => {

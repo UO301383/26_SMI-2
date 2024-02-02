@@ -1,5 +1,9 @@
+// Book model
+
+// declare an array of book objects
 const books = [];
 
+// Operations to manage the book objects
 module.exports.create = (data) => {
     const id = books.length + 1;
     const book = { id: id, title: data.title, author: data.author }; 

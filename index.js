@@ -1,3 +1,6 @@
+// Node.js application
+
+// Import the express application
 const app = require('./app/app');
 
 // Listening port

@@ -1,5 +1,9 @@
+// Book validator
+
+// Import modules
 const {body, validationResult} = require('express-validator');
 
+// Book data validation
 exports.validateBook = [
   body('title')
     .trim()

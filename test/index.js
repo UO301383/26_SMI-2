@@ -1,3 +1,6 @@
+// Node.js test application
+
+// Import modules
 const app = require('../app/app');
 let server;
 
