@@ -1,4 +1,3 @@
-version: '2'
 services:
   backend_simple: # backend_simple service
     build: ./ # image is built from the configuration in ./Dockerfile (located in the current directory)
