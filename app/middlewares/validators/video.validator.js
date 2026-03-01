@@ -1,26 +1,26 @@
-// Book validator
+// Video validator
 
 // Import modules
 const {body, validationResult} = require('express-validator');
 
-// Book data validation
-exports.validateBook = [
+// Video data validation
+exports.validateVideo = [
   body('title')
     .trim()
     .escape()
     .not()
     .isEmpty()
-    .withMessage('Book title can not be empty!')
+    .withMessage('Video title can not be empty!')
     .bail(),
-  body('author')
+  body('description') // Cambiamos author por description
     .trim()
     .escape()
     .not()
     .isEmpty()
-    .withMessage('Invalid author!')
+    .withMessage('Video description can not be empty!')
     .bail()
     .isLength({min: 3})
-    .withMessage('Minimum 3 characters required!')
+    .withMessage('Minimum 3 characters required for description!')
     .bail(),
   (req, res, next) => {
     const errors = validationResult(req);
