@@ -6,7 +6,7 @@ module.exports = app => {
     
     // IMPORTAMOS EL MULTER
     const multer = require('multer');
-    const upload = multer({ dest: 'S:/uploads/' }); 
+    const upload = multer({ dest: './uploads/' }); 
 
     // ¡NUEVO! IMPORTAMOS NUESTRO PORTERO DE AUTENTICACIÓN
     const auth = require('../middlewares/auth.middleware');

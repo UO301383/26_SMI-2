@@ -4,6 +4,7 @@
 const express = require('express');
 const bodyParser = require("body-parser");
 const cors = require('cors');
+const db = require('./models/db.js');
 
 const app = express();
 
@@ -18,6 +19,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use('/videos', express.static('S:/videos'));
 app.use('/users', express.static('S:/users'));
+
+db.sequelize.sync()
+  .then(() => console.log('Base de datos sincronizada'))
+  .catch(err => console.log('Error al sincronizar la base de datos: ' + err));
 
 // Mensaje de bienvenida de la API
 app.get('/', (req, res) => {

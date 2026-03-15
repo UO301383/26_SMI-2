@@ -2,8 +2,8 @@
 
 const host = process.env.DATABASE_HOST || 'localhost';
 const port = process.env.DATABASE_PORT || '3306';
-const user = process.env.DATABASE_USER || 'user';
-const password = process.env.DATABASE_PASSWORD || 'password';
+const user = process.env.DATABASE_USER || 'root';
+const password = process.env.DATABASE_PASSWORD || 'root';
 const database = process.env.DATABASE_NAME || '26_smi_2_db';
 
 module.exports = {

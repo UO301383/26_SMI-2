@@ -1,34 +1,32 @@
-// Declaramos un array para guardar los objetos de usuario
-const users = [];
-
-// Operaciones para gestionar los objetos de usuario
-module.exports.create = (data) => {
-    const id = users.length + 1;
-    
-    // Creamos el objeto usuario con los campos del guion
-    const user = { 
-        id: id, 
-        name: data.name, 
-        email: data.email,
-        icon: data.icon, 
-        username: data.username,
-        password: data.password
-    };
-    
-    users.push(user);
-    return Promise.resolve(user);
-};
-
-module.exports.findAll = () => {
-    return Promise.resolve(users);
-};
-
-module.exports.findById = (id) => {
-    const user = users.find(u => u.id == id);
-    return Promise.resolve(user);
-};
-
-module.exports.drop = () => {
-    users.length = 0;
-    return Promise.resolve();
+module.exports = (sequelize, Sequelize) => {
+    return sequelize.define('user', {
+        id: {
+            type:          Sequelize.INTEGER,
+            autoIncrement: true,
+            primaryKey:    true
+        },
+        name: {
+            type:      Sequelize.STRING,
+            allowNull: true
+        },
+        email: {
+            type:      Sequelize.STRING,
+            allowNull: true,
+            unique:    true
+        },
+        username: {
+            type:      Sequelize.STRING,
+            allowNull: false,
+            unique:    true
+        },
+        password: {
+            type:      Sequelize.STRING,
+            allowNull: false
+        },
+        icon: {
+            type:         Sequelize.STRING,
+            allowNull:    true,
+            defaultValue: ''
+        }
+    });
 };
