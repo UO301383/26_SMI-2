@@ -1,7 +1,13 @@
-// Middleware de autenticación simulada
+// Middleware de autenticación real con JWT
+
+const jwt = require('jsonwebtoken');
+
+// Clave secreta para firmar y verificar los tokens
+// En un proyecto real esto iría en una variable de entorno (.env)
+const SECRET_KEY = 'clave_secreta_smi_2026';
 
 module.exports.verifyToken = (req, res, next) => {
-    // 1. Buscamos el token en las cabeceras de la petición (Postman)
+    // 1. Buscamos el token en las cabeceras de la petición
     const token = req.headers['authorization'];
 
     if (!token) {
@@ -9,20 +15,17 @@ module.exports.verifyToken = (req, res, next) => {
     }
 
     try {
-        // 2. Simulamos que desencriptamos el token. 
-        // Nuestro token de prueba será algo como "token-del-usuario-1"
-        // Al separarlo por guiones, cogemos el último trozo (el ID)
-        const parts = token.split('-');
-        const userId = parts[parts.length - 1]; 
+        // 2. Verificamos y desencriptamos el token con la clave secreta
+        const decoded = jwt.verify(token, SECRET_KEY);
 
-        // 3. ¡LA MAGIA! Rellenamos la variable req.user para que el controlador la pueda usar
+        // 3. Guardamos los datos del usuario en req.user para que el controlador los pueda usar
         req.user = {
-            id: parseInt(userId)
+            id: decoded.id
         };
 
-        // 4. Le decimos a Express que deje pasar la petición al controlador
+        // 4. Dejamos pasar la petición al controlador
         next();
     } catch (error) {
-        return res.status(401).json({ error: "Token inválido." });
+        return res.status(401).json({ error: "Token inválido o expirado." });
     }
 };
