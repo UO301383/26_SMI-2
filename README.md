@@ -30,15 +30,12 @@ Hay una base funcional parcial para:
 - Registro e inicio de sesion.
 - Modelos Sequelize para usuarios y videos.
 - Procesado de video con `ffmpeg` para MP4 y miniatura.
-- Preparacion de una ruta para DASH.
+- Generacion backend de contenido MPEG-DASH.
 
 Pero el proyecto no esta todavia integrado extremo a extremo. Ahora mismo hay varios bloqueos importantes:
 
 - El `README` anterior era una plantilla de una API de libros y no describia este proyecto.
-- El controlador de videos usa mal el modelo y, tal como esta, las operaciones de video no quedan realmente funcionales.
-- La autenticacion JWT esta a medias: se genera token real, pero el middleware valida con otra clave distinta.
 - Las rutas de usuario que dependen de `req.user` no llevan middleware de autenticacion.
-- DASH no esta activo porque falta `script_encoding.sh`.
 - El frontend completo falta.
 - Docker existe, pero sigue siendo una adaptacion incompleta de la plantilla inicial.
 - Los tests actuales son de un proyecto de libros y no prueban este servicio.
@@ -52,6 +49,7 @@ Pero el proyecto no esta todavia integrado extremo a extremo. Ahora mismo hay va
 │   ├── config/
 │   │   ├── auth.config.js
 │   │   └── db.config.js
+│   │   └── storage.config.js
 │   ├── controllers/
 │   │   ├── auth.controller.js
 │   │   ├── user.controller.js
@@ -79,6 +77,7 @@ Pero el proyecto no esta todavia integrado extremo a extremo. Ahora mismo hay va
 ├── docker-compose.yml
 ├── index.js
 ├── package.json
+├── script_encoding.sh
 └── README.md
 ```
 
@@ -91,20 +90,20 @@ Pero el proyecto no esta todavia integrado extremo a extremo. Ahora mismo hay va
 | Subida de videos mediante formulario web | No implementado | Existe backend para crear video y subir archivo, pero no hay formulario web ni cliente. |
 | Videos precargados de miembros del grupo | No implementado | No hay carpeta de datos iniciales, seeds ni material cargado en el repo. |
 | Registro de usuarios por formulario web | Parcial | El endpoint `POST /signup` existe, pero no hay frontend. |
-| Autenticacion usuario/contrasena para subir videos | Parcial | `signup` y `login` usan `bcrypt` y `jsonwebtoken`, pero el middleware verifica con una clave distinta y rompe el flujo real. |
-| Uso de base de datos para la subida de videos | Parcial | Sequelize esta configurado para MySQL y hay modelos `user` y `video`, pero la integracion de videos no esta terminada. |
-| Actualizacion automatica del contenido al subir un video | Parcial | Hay llamadas a `ffmpeg` al subir archivo, pero falta persistencia correcta y DASH esta desactivado. |
+| Autenticacion usuario/contrasena para subir videos | Parcial | `signup` y `login` usan `bcrypt` y `jsonwebtoken`, y las rutas de video protegidas validan JWT. Aun faltan ajustes en rutas privadas de usuario. |
+| Uso de base de datos para la subida de videos | Parcial | Sequelize esta configurado para MySQL y el flujo de video ya usa el modelo real, pero falta validar el sistema completo en ejecucion. |
+| Actualizacion automatica del contenido al subir un video | Parcial | Al subir un archivo se genera MP4, miniatura y contenido DASH, pero falta probar el flujo extremo a extremo y desplegarlo. |
 | Web HTML5 con listado y miniaturas | No implementado | No hay HTML, vistas, plantillas ni frontend SPA. |
 | Extraccion automatica de miniatura con `ffmpeg` | Implementado | `getThumbnail()` existe en `app/utils/encoding_video.js`. |
 | Reproduccion directa con HTML5 | No implementado | No existe cliente web ni pagina de reproduccion. |
-| Reproduccion adaptativa MPEG-DASH en 3 calidades | Parcial | Existe funcion `encodeDash()`, pero no se usa y falta `script_encoding.sh`. Tampoco hay reproductor DASH en cliente. |
+| Reproduccion adaptativa MPEG-DASH en 3 calidades | Parcial | El backend ya genera MPEG-DASH en 3 calidades y expone el `manifest.mpd`, pero aun no hay reproductor DASH en cliente ni validacion final en despliegue. |
 
 ### 4.2 Funciones adicionales simples
 
 | Requisito | Estado | Observaciones |
 | --- | --- | --- |
 | Framework en cliente (Bootstrap) | No implementado | No hay frontend. |
-| Filtrado de videos por usuario | Parcial | Existe endpoint `GET /video/user/:userId`, pero depende del controlador de videos, que ahora mismo no esta bien integrado con Sequelize. |
+| Filtrado de videos por usuario | Parcial | Existe endpoint `GET /video/user/:userId` y ya usa el modelo de video integrado en backend. Sigue faltando el frontend. |
 | Filtros opcionales combinables con `ffmpeg` | No implementado | No hay endpoints ni scripts para marca de agua, blanco y negro, velocidad, etc. |
 | Listas de reproduccion automaticas | No implementado | No hay logica ni modelo asociado. |
 | Buscador de videos | No implementado | No hay endpoint de busqueda ni interfaz. |
@@ -144,7 +143,8 @@ Pero el proyecto no esta todavia integrado extremo a extremo. Ahora mismo hay va
 
 - Conversion de video a MP4 con `ffmpeg`.
 - Extraccion automatica de miniatura PNG con `ffmpeg`.
-- Esqueleto de funcion para codificacion DASH.
+- Generacion de contenido MPEG-DASH con `manifest.mpd` y segmentos `.m4s`.
+- Script `script_encoding.sh` para generar 3 representaciones de video.
 
 ### Validacion
 
@@ -156,36 +156,25 @@ Esta seccion es importante porque varias cosas aparecen como hechas, pero todavi
 
 ### Bloqueos criticos
 
-1. El controlador de videos no usa el modelo Sequelize inicializado.
-   - En `app/controllers/video.controller.js` se hace `require('../models/video.model')`.
-   - Ese archivo exporta una funcion de definicion de modelo, no una instancia lista para usar.
-   - Asi, llamadas como `Video.findAll()` o `Video.create()` no quedan correctamente conectadas a la base de datos.
-
-2. El middleware JWT usa una clave secreta distinta a la del login.
-   - `auth.controller.js` firma el token con `app/config/auth.config.js`.
-   - `auth.middleware.js` verifica con una constante hardcodeada distinta.
-   - Resultado: el token emitido por `POST /login` no es fiable para acceder a rutas protegidas.
-
-3. Las rutas de usuario que dependen de sesion no estan protegidas.
+1. Las rutas de usuario que dependen de sesion no estan protegidas.
    - `PUT /user`, `PUT /user/upload` y `DELETE /user` leen `req.user.id`.
    - En `app/routes/user.routes.js` no se aplica `auth.verifyToken`.
    - Resultado: esas rutas fallaran o se comportaran de forma incorrecta.
 
-4. La subida y publicacion de videos esta acoplada a rutas Windows.
-   - En `app/app.js` se sirven estaticos desde `S:/videos` y `S:/users`.
-   - En `video.controller.js` las salidas tambien se generan en `S:/videos`.
-   - Esto no es portable a Linux, Docker ni a la VM de entrega sin adaptacion.
+2. Falta validacion real del pipeline completo en entorno de ejecucion.
+   - El backend ya genera MP4, miniatura y DASH.
+   - Pero aun no esta comprobado de extremo a extremo con MySQL, `ffmpeg`, subida real y reproduccion desde cliente.
 
-5. DASH esta desactivado.
-   - La llamada a `encodeDash()` esta comentada.
-   - No existe `script_encoding.sh` en el repositorio.
+3. No existe frontend para consumir el manifiesto DASH.
+   - El backend expone el `manifest.mpd`.
+   - Pero todavia no hay reproductor con `dash.js` o similar.
 
 ### Problemas relevantes, aunque no bloqueen el arranque
 
 - `docker-compose.yml` solo levanta un backend y sigue nombrado como servicio de libros.
 - `Dockerfile` usa `node:12`, no instala `ffmpeg` y no prepara entorno para MySQL ni nginx.
 - No hay asociaciones Sequelize entre usuarios y videos.
-- No hay persistencia de rutas procesadas confirmada en el flujo de video porque el controlador no usa correctamente el modelo.
+- Falta confirmar en pruebas reales la persistencia correcta de rutas procesadas en todos los casos.
 - No hay almacenamiento ni subida real de iconos de usuario.
 - No hay manejo de errores consistente en todos los controladores.
 - Los tests en `test/` son de una API de libros (`/books`) y no corresponden a este proyecto.
@@ -227,7 +216,7 @@ Esta seccion es importante porque varias cosas aparecen como hechas, pero todavi
 - `DELETE /video/:id`
   - Borra el video logico; requiere autenticacion y propiedad.
 - `POST /video/:id/upload`
-  - Sube archivo y lanza recodificacion a MP4 y miniatura; DASH esta desactivado.
+  - Sube archivo y lanza recodificacion a MP4, miniatura y generacion MPEG-DASH.
 
 ## 8. Dependencias principales
 
@@ -265,26 +254,22 @@ npm start
 ### Limitaciones del arranque actual
 
 - Si no hay MySQL, el backend no funcionara correctamente.
-- Si no existe una unidad/ruta equivalente a `S:/videos` y `S:/users`, la publicacion y procesado de ficheros fallara.
+- Si no estan instalados `ffmpeg` y `ffprobe`, el procesado de video y DASH fallara.
 - `npm test` no valida este proyecto; los tests estan desactualizados.
 
 ## 10. Trabajo pendiente priorizado
 
 ### Prioridad 1: dejar operativo el backend
 
-- Corregir el uso del modelo `video` para que utilice Sequelize de verdad.
-- Unificar la clave JWT entre login y middleware.
 - Proteger con middleware las rutas privadas de usuario.
-- Persistir correctamente en base de datos las rutas `path`, `thumbnail` y `dash`.
-- Sustituir las rutas `S:/...` por almacenamiento configurable por entorno.
+- Validar en pruebas reales la persistencia de `path`, `thumbnail` y `dash`.
 - Implementar borrado real de videos y, si procede, de ficheros asociados.
 
 ### Prioridad 2: completar el pipeline multimedia
 
-- Crear `script_encoding.sh`.
-- Activar generacion MPEG-DASH.
-- Generar al menos 3 calidades.
-- Servir manifest y segmentos de forma correcta.
+- Probar la generacion MPEG-DASH con videos reales.
+- Verificar el manifiesto y segmentos en navegador y reproductor compatible.
+- Ajustar perfiles/calidades si hiciera falta segun los videos del proyecto.
 
 ### Prioridad 3: preparar despliegue
 
@@ -321,8 +306,11 @@ npm start
 - Modelos Sequelize para usuario y video.
 - Registro con hash de contrasena.
 - Login con JWT.
+- Verificacion JWT funcional en rutas protegidas de video.
 - Validacion backend del alta de videos.
 - Conversion a MP4 y extraccion de miniatura con `ffmpeg`.
+- Generacion backend de MPEG-DASH en 3 calidades.
+- Almacenamiento configurable en `storage/` en lugar de rutas fijas de Windows.
 
 ### Parcial
 
@@ -343,6 +331,6 @@ npm start
 
 ## 12. Conclusiones
 
-El repositorio ya no es una plantilla vacia: tiene una base backend valida para seguir construyendo el servicio. Sin embargo, todavia no puede considerarse una entrega funcional del sistema tipo YouTube Shorts porque faltan la interfaz web, la integracion correcta del flujo de videos, la parte operativa de DASH y la puesta a punto de despliegue.
+El repositorio ya no es una plantilla vacia: tiene una base backend valida para seguir construyendo el servicio. La parte de generacion backend de MPEG-DASH ya esta implementada, pero el proyecto todavia no puede considerarse una entrega funcional completa del sistema tipo YouTube Shorts porque faltan la interfaz web, la validacion extremo a extremo, el reproductor DASH en cliente y la puesta a punto de despliegue.
 
 La siguiente fase recomendable es estabilizar primero el backend real y el almacenamiento, y despues montar frontend y despliegue.
