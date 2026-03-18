@@ -4,7 +4,9 @@
 const express = require('express');
 const bodyParser = require("body-parser");
 const cors = require('cors');
+const fs = require('fs');
 const db = require('./models/db.js');
+const storageConfig = require('./config/storage.config.js');
 
 const app = express();
 
@@ -17,8 +19,12 @@ app.use(bodyParser.json());
 // Parse requests of content-type: application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use('/videos', express.static('S:/videos'));
-app.use('/users', express.static('S:/users'));
+fs.mkdirSync(storageConfig.uploadsDir, { recursive: true });
+fs.mkdirSync(storageConfig.videosDir, { recursive: true });
+fs.mkdirSync(storageConfig.usersDir, { recursive: true });
+
+app.use('/videos', express.static(storageConfig.videosDir));
+app.use('/users', express.static(storageConfig.usersDir));
 
 db.sequelize.sync()
   .then(() => console.log('Base de datos sincronizada'))

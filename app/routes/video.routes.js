@@ -3,10 +3,11 @@
 module.exports = app => {
     const controller = require("../controllers/video.controller");
     const validator = require('../middlewares/validators/video.validator'); 
+    const storageConfig = require('../config/storage.config.js');
     
     // IMPORTAMOS EL MULTER
     const multer = require('multer');
-    const upload = multer({ dest: './uploads/' }); 
+    const upload = multer({ dest: storageConfig.uploadsDir }); 
 
     // ¡NUEVO! IMPORTAMOS NUESTRO PORTERO DE AUTENTICACIÓN
     const auth = require('../middlewares/auth.middleware');

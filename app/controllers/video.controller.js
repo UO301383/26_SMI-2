@@ -1,7 +1,11 @@
 // Video controller
 
-// Importamos el modelo de video
-const Video = require('../models/video.model');
+const fs = require('fs');
+const path = require('path');
+const db = require('../models/db.js');
+const storageConfig = require('../config/storage.config.js');
+
+const Video = db.video;
 
 // Importamos las funciones de FFmpeg (asegúrate de que la ruta coincida con donde lo guardaste)
 const encoder = require('../utils/encoding_video');
@@ -30,7 +34,7 @@ module.exports.create = async (req, res, next) => {
 
 // Consultar un vídeo por su id (GET /video/:id) 
 module.exports.get = async (req, res, next) => {
-    const video = await Video.findById(req.params.id);
+    const video = await Video.findByPk(req.params.id);
     if (video) {
         res.status(200).json(video);
     } else {
@@ -48,7 +52,7 @@ module.exports.getByUser = async (req, res, next) => {
 
 // Actualizar datos de un vídeo (PUT /video/:id)
 module.exports.update = async (req, res, next) => {
-    const video = await Video.findById(req.params.id);
+    const video = await Video.findByPk(req.params.id);
     if (!video) {
         return res.status(404).end();
     }
@@ -61,13 +65,14 @@ module.exports.update = async (req, res, next) => {
     // Si es el creador, actualizamos los datos
     video.title = req.body.title || video.title;
     video.description = req.body.description || video.description;
+    await video.save();
     
     res.status(200).json(video);
 };
 
 // Borrar un vídeo (DELETE /video/:id)
 module.exports.delete = async (req, res, next) => {
-    const video = await Video.findById(req.params.id);
+    const video = await Video.findByPk(req.params.id);
     if (!video) {
         return res.status(404).end();
     }
@@ -77,13 +82,13 @@ module.exports.delete = async (req, res, next) => {
         return res.status(403).json({ error: "No tienes permiso para borrar este vídeo" });
     }
     
-    // Nota: Para borrarlo realmente de la memoria, más adelante añadiremos un método 'delete' en video.model.js
+    await video.destroy();
     res.status(204).end(); // 204 significa "No Content" (indica que se ha borrado con éxito)
 };
 
 // Subir archivo de vídeo y procesarlo con FFmpeg (POST /video/:id/upload)
 module.exports.upload = async (req, res, next) => {
-    const video = await Video.findById(req.params.id);
+    const video = await Video.findByPk(req.params.id);
     if (!video) {
         return res.status(404).end();
     }
@@ -100,14 +105,13 @@ module.exports.upload = async (req, res, next) => {
     }
 
     try {
-        // Definimos las rutas de entrada y salida basándonos en tu disco S:
-        // req.file.path es donde el servidor guardó temporalmente el vídeo al recibirlo (ej: S:/uploads/video-1.avi)
         const inputVideoPath = req.file.path; 
-        
-        // Rutas finales donde FFmpeg dejará los archivos procesados
-        const outputVideoPath = `S:/videos/video-${video.id}.mp4`;
-        const outputThumbnailPath = `S:/videos/video-${video.id}.png`;
-        const outputDashContentPath = `S:/videos/video-${video.id}`; // Carpeta para los trozos DASH
+        const outputVideoPath = path.join(storageConfig.videosDir, `video-${video.id}.mp4`);
+        const outputThumbnailPath = path.join(storageConfig.videosDir, `video-${video.id}.png`);
+        const outputDashContentPath = path.join(storageConfig.videosDir, `video-${video.id}`);
+
+        fs.mkdirSync(storageConfig.videosDir, { recursive: true });
+        fs.mkdirSync(outputDashContentPath, { recursive: true });
 
         // 1. Recodificar a MP4
         console.log("Iniciando recodificación a MP4...");
@@ -118,15 +122,16 @@ module.exports.upload = async (req, res, next) => {
         await encoder.getThumbnail(outputVideoPath, outputThumbnailPath);
         
         // 3. Generar contenido DASH
-        // Nota: Solo descomenta esta línea si ya tienes el archivo 'script_encoding.sh' en tu proyecto, 
-        // si no, dará error porque no encontrará el script de bash.
-        // console.log("Generando formato DASH...");
-        // await encoder.encodeDash(outputVideoPath, outputDashContentPath);
+        console.log("Generando formato DASH...");
+        await encoder.encodeDash(outputVideoPath, outputDashContentPath);
 
         // Actualizamos nuestro "modelo" en la base de datos con las nuevas rutas
         video.path = `/videos/video-${video.id}.mp4`;
         video.thumbnail = `/videos/video-${video.id}.png`;
-        video.dash = `/videos/video-${video.id}/manifest.mpd`; // Archivo principal de DASH
+        video.dash = `/videos/video-${video.id}/manifest.mpd`;
+        await video.save();
+
+        fs.unlink(inputVideoPath, () => {});
 
         // Respondemos al usuario con los datos actualizados del vídeo
         res.status(200).json(video);

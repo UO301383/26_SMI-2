@@ -1,10 +1,9 @@
 // Middleware de autenticación real con JWT
 
 const jwt = require('jsonwebtoken');
+const authConfig = require('../config/auth.config.js');
 
-// Clave secreta para firmar y verificar los tokens
-// En un proyecto real esto iría en una variable de entorno (.env)
-const SECRET_KEY = 'clave_secreta_smi_2026';
+const SECRET_KEY = authConfig.secret;
 
 module.exports.verifyToken = (req, res, next) => {
     // 1. Buscamos el token en las cabeceras de la petición
