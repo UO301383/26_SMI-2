@@ -7,11 +7,7 @@ module.exports = app => {
     
     // Consultar todos los usuarios (GET /user)
     app.get(`${baseRoute}`, controller.getAll);   
-    
-    // Consultar playlist del usuario en sesión (GET /user/playlist)
-    app.get(`${baseRoute}/playlist`, controller.getPlaylist);
-
-    
+        
     // Consultar un usuario por id (GET /user/:id)
     app.get(`${baseRoute}/:id`, controller.get);                            
 

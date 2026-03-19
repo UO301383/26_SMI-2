@@ -18,6 +18,7 @@ module.exports = app => {
     app.get(`${baseRoute}`, controller.getAll);                             
     app.get(`${baseRoute}/:id`, controller.get);                            
     app.get(`${baseRoute}/user/:userId`, controller.getByUser);
+    app.get(`${baseRoute}/playlist`, controller.getPlaylist);
 
     // --- RUTAS PROTEGIDAS (Necesitan pasar por auth.verifyToken) ---
     
