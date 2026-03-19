@@ -51,13 +51,18 @@ module.exports.get = async (req, res, next) => {
     }    
 };
 
+//Consultar lista de reproducción (GET /video/plalist)
 module.exports.getPlaylist = async (req, res, next) => {
     try{
-        
+       const videos = await Video.findAll({
+            where: { path: '' },
+            order: [['createdAt', 'DESC']]
+        });
+        res.status(200).json(videos);
     }catch(error){
 
     }
-}
+};
 // Consultar los vídeos de un usuario concreto (GET /video/user/:userId)
 module.exports.getByUser = async (req, res, next) => {
     const videos = await Video.findAll();
