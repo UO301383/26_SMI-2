@@ -7,8 +7,7 @@ const SECRET_KEY = authConfig.secret;
 
 module.exports.verifyToken = (req, res, next) => {
     // 1. Buscamos el token en las cabeceras de la petición
-    const token = req.headers['authorization'];
-
+    const token = req.headers['authorization'].replace('Bearer ', '');
     if (!token) {
         return res.status(401).json({ error: "Acceso denegado: No has enviado ningún token." });
     }
