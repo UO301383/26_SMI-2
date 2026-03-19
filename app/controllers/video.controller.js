@@ -12,8 +12,17 @@ const encoder = require('../utils/encoding_video');
 
 // Consultar todos los vídeos (GET /video) 
 module.exports.getAll = async (req, res, next) => {
-    const videos = await Video.findAll();
-    res.status(200).json(videos);
+    try{
+        if(req.query.search){
+            const videos = await Video.findAll({ where: {title: req.query.search} });
+            res.status(200).json(videos);
+        }
+        const videos = await Video.findAll();
+        res.status(200).json(videos);
+    }catch(error){
+        console.error("Error al consultar los vídeos:", error);
+        res.status(500).json({ error: "Error interno al consultar los vídeos" });
+    }
 };
 
 // Crear un nuevo vídeo (POST /video) 
@@ -42,6 +51,13 @@ module.exports.get = async (req, res, next) => {
     }    
 };
 
+module.exports.getPlaylist = async (req, res, next) => {
+    try{
+        
+    }catch(error){
+
+    }
+}
 // Consultar los vídeos de un usuario concreto (GET /video/user/:userId)
 module.exports.getByUser = async (req, res, next) => {
     const videos = await Video.findAll();
