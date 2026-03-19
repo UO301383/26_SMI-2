@@ -60,7 +60,7 @@ module.exports.getPlaylist = async (req, res, next) => {
         });
         res.status(200).json(videos);
     }catch(error){
-
+        res.status(500).json({ error: "Error al consultar la lista de reproducción" });
     }
 };
 // Consultar los vídeos de un usuario concreto (GET /video/user/:userId)
