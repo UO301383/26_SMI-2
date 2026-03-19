@@ -6,19 +6,39 @@ const db = require('../models/db.js');
 const storageConfig = require('../config/storage.config.js');
 
 const Video = db.video;
+const { Op } = db.Sequelize;
 
 // Importamos las funciones de FFmpeg (asegúrate de que la ruta coincida con donde lo guardaste)
 const encoder = require('../utils/encoding_video');
 
+const removeIfExists = async (targetPath) => {
+    try {
+        await fs.promises.rm(targetPath, { recursive: true, force: true });
+    } catch (error) {
+        console.error(`Error al borrar recurso ${targetPath}:`, error);
+        throw error;
+    }
+};
+
 // Consultar todos los vídeos (GET /video) 
 module.exports.getAll = async (req, res, next) => {
     try{
-        if(req.query.search){
-            const videos = await Video.findAll({ where: {title: req.query.search} });
-            res.status(200).json(videos);
+        const searchTerm = req.query.search ? req.query.search.trim() : '';
+
+        if (searchTerm) {
+            const videos = await Video.findAll({
+                where: {
+                    title: {
+                        [Op.like]: `%${searchTerm}%`
+                    }
+                }
+            });
+
+            return res.status(200).json(videos);
         }
+
         const videos = await Video.findAll();
-        res.status(200).json(videos);
+        return res.status(200).json(videos);
     }catch(error){
         console.error("Error al consultar los vídeos:", error);
         res.status(500).json({ error: "Error interno al consultar los vídeos" });
@@ -93,18 +113,33 @@ module.exports.update = async (req, res, next) => {
 
 // Borrar un vídeo (DELETE /video/:id)
 module.exports.delete = async (req, res, next) => {
-    const video = await Video.findByPk(req.params.id);
-    if (!video) {
-        return res.status(404).end();
+    try {
+        const video = await Video.findByPk(req.params.id);
+        if (!video) {
+            return res.status(404).end();
+        }
+        
+        // COMPROBACIÓN DE SEGURIDAD: ¿Es el creador? 
+        if (video.userId !== req.user.id) {
+            return res.status(403).json({ error: "No tienes permiso para borrar este vídeo" });
+        }
+
+        const outputVideoPath = path.join(storageConfig.videosDir, `video-${video.id}.mp4`);
+        const outputThumbnailPath = path.join(storageConfig.videosDir, `video-${video.id}.png`);
+        const outputDashContentPath = path.join(storageConfig.videosDir, `video-${video.id}`);
+
+        await Promise.all([
+            removeIfExists(outputVideoPath),
+            removeIfExists(outputThumbnailPath),
+            removeIfExists(outputDashContentPath)
+        ]);
+        
+        await video.destroy();
+        return res.status(204).end();
+    } catch (error) {
+        console.error("Error al borrar el vídeo:", error);
+        return res.status(500).json({ error: "Error interno al borrar el vídeo" });
     }
-    
-    // COMPROBACIÓN DE SEGURIDAD: ¿Es el creador? 
-    if (video.userId !== req.user.id) {
-        return res.status(403).json({ error: "No tienes permiso para borrar este vídeo" });
-    }
-    
-    await video.destroy();
-    res.status(204).end(); // 204 significa "No Content" (indica que se ha borrado con éxito)
 };
 
 // Subir archivo de vídeo y procesarlo con FFmpeg (POST /video/:id/upload)
