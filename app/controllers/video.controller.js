@@ -85,10 +85,10 @@ module.exports.getPlaylist = async (req, res, next) => {
 };
 // Consultar los vídeos de un usuario concreto (GET /video/user/:userId)
 module.exports.getByUser = async (req, res, next) => {
-    const videos = await Video.findAll();
-    // Filtramos el array completo para quedarnos solo con los del userId indicado en la URL
-    const userVideos = videos.filter(v => v.userId == req.params.userId);
-    res.status(200).json(userVideos);
+    const videos = await Video.findAll({
+        where: { userId: req.params.userId }
+    });
+    res.status(200).json(videos);
 };
 
 // Actualizar datos de un vídeo (PUT /video/:id)
