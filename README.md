@@ -21,15 +21,7 @@ Servicio de vídeos cortos tipo YouTube Shorts. Backend REST API en Node.js.
 npm install
 ```
 
-Crea un archivo `.env` en la raíz:
-
-```env
-DATABASE_HOST=localhost
-DATABASE_PORT=3306
-DATABASE_USER=root
-DATABASE_PASSWORD=root
-DATABASE_NAME=26_smi_2_db
-```
+Crea un archivo `.env` en la raíz
 
 ```bash
 npm start
