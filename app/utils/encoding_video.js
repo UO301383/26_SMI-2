@@ -57,17 +57,44 @@ exports.getThumbnail = (inputVideoPath, outputThumbnailPath) => {
 
 // Generate dash content from an input video
 exports.encodeDash = (inputVideoPath, outputDashContentPath) => {
-// video with id=x -> inputVideoPath = /videos/video-x.mp4
-// video with id=x -> outputDashContentPath = /videos/video-x
     return new Promise((resolve, reject) => {
-      const scriptPath = path.join(__dirname, '../../script_encoding.sh');
-      const command = `bash "${scriptPath}" "${inputVideoPath}" "${outputDashContentPath}"`;
 
-      child_process.exec(command, (err, stdout, stderr) => {
-        if (err) {
-          return reject(new Error(`Encoding error. ${stderr}`));
+        const filterComplex = [
+            "[0:v]setsar=1,split=3[v1][v2][v3];",
+            "[v1]scale=426:240:force_original_aspect_ratio=decrease,pad=426:240:(ow-iw)/2:(oh-ih)/2,setsar=1[v240];",
+            "[v2]scale=640:360:force_original_aspect_ratio=decrease,pad=640:360:(ow-iw)/2:(oh-ih)/2,setsar=1[v360];",
+            "[v3]scale=854:480:force_original_aspect_ratio=decrease,pad=854:480:(ow-iw)/2:(oh-ih)/2,setsar=1[v480]"
+        ].join(" ");
+
+        const outputManifest = `"${outputDashContentPath}/manifest.mpd"`;
+
+        const command = [
+            `ffmpeg -y -i "${inputVideoPath}"`,
+            `-filter_complex "${filterComplex}"`,
+            `-map "[v240]" -map "[v360]" -map "[v480]" -map 0:a:0`,
+            `-c:v libx264 -preset veryfast -profile:v baseline`,
+            `-g 48 -keyint_min 48 -sc_threshold 0`,
+            `-b:v:0 400k -maxrate:v:0 428k -bufsize:v:0 600k`,
+            `-b:v:1 900k -maxrate:v:1 963k -bufsize:v:1 1200k`,
+            `-b:v:2 1600k -maxrate:v:2 1712k -bufsize:v:2 2400k`,
+            `-c:a aac -b:a:0 128k`,
+            `-use_timeline 1 -use_template 1`,
+            `-init_seg_name "init-$RepresentationID$.m4s"`,
+            `-media_seg_name "chunk-$RepresentationID$-$Number%05d$.m4s"`,
+            `-adaptation_sets "id=0,streams=0 id=1,streams=1 id=2,streams=2 id=3,streams=3"`,
+            `-f dash ${outputManifest}`
+        ].join(" ");
+
+        const fs = require('fs');
+        if (!fs.existsSync(outputDashContentPath)) {
+            fs.mkdirSync(outputDashContentPath, { recursive: true });
         }
-        resolve(outputDashContentPath);
-      });
+
+        child_process.exec(command, (err, stdout, stderr) => {
+            if (err) {
+                return reject(new Error(`Encoding error. ${stderr}`));
+            }
+            resolve(outputDashContentPath);
+        });
     });
 }
