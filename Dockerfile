@@ -1,4 +1,4 @@
-FROM node:14
+FROM node:18
 
 # Instalar ffmpeg
 RUN apt-get update -q && apt-get install -qy ffmpeg
