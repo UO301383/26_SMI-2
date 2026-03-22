@@ -4,8 +4,6 @@
 //   1. Coloca un fichero de vídeo por miembro en seeds/videos/ (ej: miembro1.mp4)
 //   2. Ajusta el array MEMBERS con los datos reales del grupo
 //   3. Ejecuta:  npm run seed
-//
-// El script es idempotente: si el username ya existe lo reutiliza en vez de duplicarlo.
 
 'use strict';
 
@@ -54,7 +52,6 @@ const MEMBERS = [
     },
   },
 ];
-// ─────────────────────────────────────────────────────────────────────────────
 
 const SEEDS_VIDEOS_DIR = path.join(__dirname, 'videos');
 
@@ -65,7 +62,7 @@ async function seedMember(member) {
   // 1. Crear o reutilizar usuario
   let user = await User.findOne({ where: { username: member.username } });
   if (user) {
-    console.log(`  → Usuario '${member.username}' ya existe (id=${user.id}), reutilizando.`);
+    console.log(`Usuario '${member.username}' ya existe (id=${user.id}), reutilizando.`);
   } else {
     const hashedPassword = await bcrypt.hash(member.password, authConfig.salt);
     user = await User.create({
@@ -74,14 +71,14 @@ async function seedMember(member) {
       email:    member.email,
       password: hashedPassword,
     });
-    console.log(`  → Usuario '${member.username}' creado (id=${user.id}).`);
+    console.log(`Usuario '${member.username}' creado (id=${user.id}).`);
   }
 
   // 2. Verificar que el fichero de vídeo fuente existe
   const sourceVideoPath = path.join(SEEDS_VIDEOS_DIR, member.video.file);
   if (!fs.existsSync(sourceVideoPath)) {
-    console.warn(`  ⚠ Fichero de vídeo no encontrado: ${sourceVideoPath}`);
-    console.warn(`    Crea el registro en BD sin procesar el fichero.`);
+    console.warn(`Fichero de vídeo no encontrado: ${sourceVideoPath}`);
+    console.warn(`Crea el registro en BD sin procesar el fichero.`);
 
     // Creamos el registro vacío para que el usuario pueda subirlo después
     const video = await Video.create({
@@ -92,7 +89,7 @@ async function seedMember(member) {
       path:        '',
       dash:        '',
     });
-    console.log(`  → Vídeo creado sin fichero (id=${video.id}).`);
+    console.log(`Vídeo creado sin fichero (id=${video.id}).`);
     return;
   }
 
@@ -105,24 +102,24 @@ async function seedMember(member) {
     path:        '',
     dash:        '',
   });
-  console.log(`  → Vídeo creado (id=${video.id}). Procesando con FFmpeg...`);
+  console.log(`Vídeo creado (id=${video.id}). Procesando con FFmpeg...`);
 
   // 4. Preparar directorios de salida
-  const outputMp4       = path.join(storageConfig.videosDir, `video-${video.id}.mp4`);
-  const outputThumb     = path.join(storageConfig.videosDir, `video-${video.id}.png`);
-  const outputDashDir   = path.join(storageConfig.videosDir, `video-${video.id}`);
+  const outputMp4 = path.join(storageConfig.videosDir, `video-${video.id}.mp4`);
+  const outputThumb = path.join(storageConfig.videosDir, `video-${video.id}.png`);
+  const outputDashDir = path.join(storageConfig.videosDir, `video-${video.id}`);
 
   fs.mkdirSync(storageConfig.videosDir, { recursive: true });
   fs.mkdirSync(outputDashDir, { recursive: true });
 
   // 5. Pipeline FFmpeg: MP4 → thumbnail → DASH
-  console.log(`     [1/3] Recodificando a MP4...`);
+  console.log(`Recodificando a MP4...`);
   await encoder.encodeMp4(sourceVideoPath, outputMp4);
 
-  console.log(`     [2/3] Extrayendo miniatura...`);
+  console.log(`Extrayendo miniatura...`);
   await encoder.getThumbnail(outputMp4, outputThumb);
 
-  console.log(`     [3/3] Generando DASH...`);
+  console.log(`Generando DASH...`);
   await encoder.encodeDash(outputMp4, outputDashDir);
 
   // 6. Actualizar rutas en BD
@@ -144,7 +141,7 @@ async function main() {
     try {
       await seedMember(member);
     } catch (err) {
-      console.error(`  ✗ Error procesando ${member.name}:`, err.message);
+      console.error(`Error procesando ${member.name}:`, err.message);
     }
     console.log('');
   }
