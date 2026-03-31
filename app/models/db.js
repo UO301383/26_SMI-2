@@ -27,5 +27,6 @@ db.sequelize = sequelize;
 // Load models
 db.video = require('./video.model.js')(sequelize, Sequelize);
 db.User = require('./user.model.js')(sequelize, Sequelize);
+db.Comment = require('./comment.model.js')(sequelize, Sequelize)
 
 module.exports = db;
