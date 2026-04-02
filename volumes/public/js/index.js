@@ -1,0 +1,64 @@
+//espera a que el HTML esté completamente cargado antes de ejecutar el código
+document.addEventListener('DOMContentLoaded', async function(){
+
+    botonesAuth(); //inicializa los botones de login y registro
+
+    await cargarVideos(); //carga los videos en la página
+
+    const searchForm = document.getElementById('search-form');
+    if (searchForm){
+        searchForm.addEventListener('submit', async function(e){
+            e.preventDefault();
+            const termino = document.getElementById('search-input').value;
+            await cargarVideos(termino); //carga los videos filtrados por el término de búsqueda
+        });
+    }
+});
+
+//función para obtener los headers de las peticiones, incluyendo el token de autenticación si el usuario está logueado
+async function cargarVideos(search){
+    const grid = document.getElementById('video-grid'); // El div donde van las tarjetas
+    grid.innerHTML = '<p class="text-muted">Cargando videos...</p>';  // Limpia el contenido del grid antes de cargar los videos
+    if(!videos || videos.length === 0){
+        grid.innerHTML = '<p class="text-muted">No se encontraron videos</p>';
+        return;
+    }
+    grid.innerHTML = ''; // Limpia el contenido del grid antes de cargar los videos
+
+    videos.forEach(function(video){
+        grid.innerHTML += crearTarjetaVideo(video); // Agrega cada tarjeta al grid
+    });
+}
+
+//función para generar el HTML de una tarjeta de video a partir de los datos del video
+// Genera el HTML de una tarjeta de vídeo
+function crearTarjeta(video) {
+  let thumbnail;
+  if (video.thumbnail) {
+    thumbnail = 'http://localhost:3000' + video.thumbnail; // Si tiene thumbnail, lo usa
+  } else {
+    thumbnail = ''; // Si no, imagen por defecto
+  }
+
+  return (
+    '<div class="col">' +
+      '<div class="card h-100 border-0">' +
+
+        // Miniatura del vídeo
+        '<img src="' + thumbnail + '" class="card-img-top" style="aspect-ratio:16/9; object-fit:cover;">' +
+
+        '<div class="card-body px-1">' +
+
+          // Título
+          '<p class="card-title fw-semibold text-dark mb-1" style="font-size:0.9rem;">' + video.title + '</p>' +
+
+          // Fecha
+          '<p class="text-muted mb-0" style="font-size:0.8rem;">' +
+            new Date(video.createdAt).toLocaleDateString('es-ES') + // Formatea la fecha en español
+          '</p>' +
+
+        '</div>' +
+      '</div>' +
+    '</div>'
+  );
+}

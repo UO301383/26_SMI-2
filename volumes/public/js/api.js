@@ -85,27 +85,4 @@ async function register(username, email, password) {
 }
 
 //guardar la sesion en localStorage después de iniciar sesión o registrarse
-function saveSession(token, user){
-    localStorage.setItem('token', user);
-    localStorage.setItem('user', JSON.stringify(user));
-}
 
-//cerrar sesión
-function logout(){
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-}
-
-//devuelve el usuario en sesión (si hay token, devuelve el usuario almacenado en localStorage, de lo contrario devuelve null)
-function getSessionUser(){
-    const user = localStorage.getItem('user');
-    if (user){
-        return JSON.parse(user);
-    }
-    return null;
-}
-
-//devuelve true si hay sesion activa, false si no
-function isLoggedIn(){
-    return !!localStorage.getItem('token');
-}
