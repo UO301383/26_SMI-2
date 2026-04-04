@@ -48,3 +48,28 @@ module.exports.delete = async (req, res, next) => {
         res.status(500).json({ error: "Error al borrar el comentario." });
     }
 };
+
+// Editar un comentario (PUT /comment/:id)
+module.exports.update = async (req, res, next) => {
+    try{
+        const comment = await Comment.findByPk(req.params.id);
+        if(!comment) {
+            return res.status(404).end();
+        }
+
+        // Solo puede editar un comentario el autor del comentario
+        if (comment.userId !== req.user.id) {
+            return res.status(403).json({error: "No tienes permiso para editar este comentario"})
+        }
+
+        // Si es el autor editamos el comentario
+        comment.text = req.body.text;
+        await comment.save();
+        res.status(200).json(comment);
+
+
+    }catch (error) {
+        res.status(500).json({ error: "Error al editar el comentario." })
+    }
+
+}
