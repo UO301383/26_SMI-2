@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function(){
             const error = document.getElementById('registro-error');
 
             const res = await registro(nombreUsuario, email, contraseña); //llama a api.js
-
+            console.log('respuesta registro',res);
             if(res.id){
                 const loginRes = await login(email, contraseña); //inicia sesión automáticamente después de registrarse
             guardaSession(loginRes.token, loginRes.user);
