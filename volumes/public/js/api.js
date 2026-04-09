@@ -76,10 +76,10 @@ async function login(email, password) {
 
 //registrar usuario
 async function registro(username, email, password) {
-    const res = await fetch(baseURL + '/register', {
+    const res = await fetch(baseURL + '/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, email, password })
+        body: JSON.stringify({ name, email, password })
     });
     return res.json();
 }

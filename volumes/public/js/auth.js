@@ -98,12 +98,16 @@ document.addEventListener('DOMContentLoaded', function(){
             const res = await registro(nombreUsuario, email, contraseña); //llama a api.js
             console.log('respuesta registro',res);
             if(res.id){
-                const loginRes = await login(email, contraseña); //inicia sesión automáticamente después de registrarse
-            guardaSession(loginRes.token, loginRes.user);
-                window.location.href = 'index.html';
-            }else {
-                error.textContent = res.message || 'Error al registrarse';
+                const loginRes = await login(email, contraseña);
+                if(loginRes.token){
+                    guardaSession(loginRes.token, loginRes.user);
+                    window.location.href = 'index.html';
+                } else {
+                error.textContent = 'Registro OK pero error al iniciar sesión automáticamente';
             }
+            } else {
+                error.textContent = res.error || 'Error al registrarse';
+        }
         });
     }
 })
