@@ -84,5 +84,15 @@ async function register(username, email, password) {
     return res.json();
 }
 
-//guardar la sesion en localStorage después de iniciar sesión o registrarse
+//subir foto del usuario en sesión (PUT /user/upload)
+async function uploadUserIcon(file) {
+    const formData = new FormData();
+    formData.append('avatar', file);
 
+    const respuesta = await fetch(URL + '/user/upload', {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+        body: formData
+    });
+    return respuesta.json();
+}
