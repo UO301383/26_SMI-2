@@ -1,7 +1,7 @@
 
 //Redirige a la pagina de login si el usuario no esta logueado
 function requiereAuth(){
-    if (!isLoggedIn()){
+    if (!estaLogueado()){
         window.location.href = 'auth.html';
     }
 }
@@ -32,6 +32,7 @@ function guardaSession(token, user){
 function logout(){
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    window.location.href = 'index.html';
 }
 
 //devuelve el usuario en sesión (si hay token, devuelve el usuario almacenado en localStorage, de lo contrario devuelve null)
@@ -87,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function(){
         });
     }
 
-    if (btnRegister){S
+    if (btnRegister){
         btnRegister.addEventListener('click', async function(e){
             const username = document.getElementById('register-username').value;
             const email = document.getElementById('register-email').value;
@@ -98,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
             if(res.id){
                 const loginRes = await login(email, password); //inicia sesión automáticamente después de registrarse
-                saveSession(loginRes.token, loginRes.user);
+            guardaSession(loginRes.token, loginRes.user);
                 window.location.href = 'index.html';
             }else {
                 error.textContent = res.message || 'Error al registrarse';

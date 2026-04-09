@@ -50,15 +50,22 @@ module.exports.update = async (req, res, next) => {
 
 // Subir icono del usuario en sesión (PUT /user/upload)
 module.exports.uploadIcon = async (req, res, next) => {
-    try {
+    try{
         const user = await User.findByPk(req.user.id);
         if (!user) {
             return res.status(404).end();
         }
-        res.status(200).json({ message: "Lógica de subida de icono pendiente" });
-    } catch (error) {
-        res.status(500).json({ error: "Error al subir el icono." });
+        if (!req.file) {
+            return res.status(400).json({ error: "No se ha subido ningún archivo." });
+        }
+        await FileSystem.promises.rename(req.file.path, rutaDestino);
+        await user.update({ icon: `/users/user-${user.id}.jpg` });
+        res.status(200).json({icon: `/users/user-${user.id}.jpg`});
+         //mueve el archivo al directorio de uploads
+    }catch (error) {
+        res.status(500).json({ error: "Error al subir el icono del usuario." });
     }
+
 };
 
 // Borrar usuario en sesión (DELETE /user)

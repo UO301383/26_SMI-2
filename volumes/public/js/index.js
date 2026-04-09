@@ -5,9 +5,9 @@ document.addEventListener('DOMContentLoaded', async function(){
 
     await cargarVideos(); //carga los videos en la página
 
-    const searchForm = document.getElementById('search-form');
-    if (searchForm){
-        searchForm.addEventListener('submit', async function(e){
+    const busquedaForm = document.getElementById('search-form');
+    if (busquedaForm){
+        busquedaForm.addEventListener('submit', async function(e){
             e.preventDefault();
             const termino = document.getElementById('search-input').value;
             await cargarVideos(termino); //carga los videos filtrados por el término de búsqueda
@@ -15,10 +15,11 @@ document.addEventListener('DOMContentLoaded', async function(){
     }
 });
 
-//función para obtener los headers de las peticiones, incluyendo el token de autenticación si el usuario está logueado
-async function cargarVideos(search){
+// función para cargar los videos en el grid de la página principal
+async function cargarVideos(busqueda){
     const grid = document.getElementById('video-grid'); // El div donde van las tarjetas
     grid.innerHTML = '<p class="text-muted">Cargando videos...</p>';  // Limpia el contenido del grid antes de cargar los videos
+    const videos = await obtenerVideos(busqueda); //llama a api.js para obtener los videos, con el término de búsqueda si se proporcionó
     if(!videos || videos.length === 0){
         grid.innerHTML = '<p class="text-muted">No se encontraron videos</p>';
         return;
@@ -26,7 +27,7 @@ async function cargarVideos(search){
     grid.innerHTML = ''; // Limpia el contenido del grid antes de cargar los videos
 
     videos.forEach(function(video){
-        grid.innerHTML += crearTarjetaVideo(video); // Agrega cada tarjeta al grid
+        grid.innerHTML += crearTarjeta(video); // Agrega cada tarjeta al grid
     });
 }
 

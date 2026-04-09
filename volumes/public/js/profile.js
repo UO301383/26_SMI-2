@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     requiereAuth();
     botonesAuth();
 
-    const usuario = getSessionUser();
+    const usuario = obtenerUsuarioEnSesion();
 
     // muestra los datos del perfil
     document.getElementById('nombre-usuario').textContent = usuario.username;
@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     //Pone el avatar del usuario si tiene uno, sino pone el avatar por defecto
     if (usuario.avatar) {
-        document.getElementById('avatar-usuario').src = usuario.avatar;
+        document.getElementById('avatar-usuario').src = usuario.icon;
     }
     // carga los videos del usuario
     await cargarVideosUsuario(usuario.id);
@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
         const respuesta= await subirArchivoAvatar(archivo); //llama a api.js para subir el nuevo icono del usuario
         if(respuesta.avatar){
-            document.getElementById('avatar-usuario').src = URL + respuesta.avatar; //actualiza el avatar en la página
+            document.getElementById('avatar-usuario').src = baseURL + respuesta.icon; //actualiza el avatar en la página
         }
     });
 });
@@ -39,7 +39,7 @@ async function cargarVideosUsuario(idUsario) {
     const grid = document.getElementById('videos-usuario-grid');
     grid.innerHTML = '<p class="text-center">Cargando videos...</p>';
 
-    const videos = await fetchVideosByUserId(idUsario); //llama a api.js para obtener los videos del usuario
+    const videos = await obtenerVideosPorUsuario(idUsario); //llama a api.js para obtener los videos del usuario
 
     if (videos.length === 0) {
         grid.innerHTML = '<p class="text-center">No has subido ningún video aún.</p>';
@@ -49,7 +49,7 @@ async function cargarVideosUsuario(idUsario) {
     grid.innerHTML = ''; //limpia el mensaje de carga
 
     videos.forEach(function(video) {
-        grid.innerHTML += crearTarjetaVideo(video);
+        grid.innerHTML += crearTarjeta(video);
     });
 }
 

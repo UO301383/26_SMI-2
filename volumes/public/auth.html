@@ -19,20 +19,20 @@
       </div>
 
       <div>
-        <label for="login-password" class="form-label">Contraseña</label>
-        <input type="password" class="form-control" id="login-password" required placeholder="Ingrese su contraseña"/>
+        <label for="login-contraseña" class="form-label">Contraseña</label>
+        <input type="password" class="form-control" id="login-contraseña" required placeholder="Ingrese su contraseña"/>
       </div>
 
-      <div class="text-danger small mb-2"></div> <!-- Mensaje de error en el caso de que el login falle -->
+      <div id="login-error" class="text-danger small mb-2"></div> <!-- Mensaje de error en el caso de que el login falle -->
       <button id="btn-login"type="submit" class="btn btn-danger w-100">Iniciar Sesión</button> <!-- Botón para enviar el formulario (ocupa todo el ancho de la tarjeta)-->
 
       <hr class="my-4" />
       <p class="text-center text-muted small">
         ¿No tienes una cuenta? 
         <a href="register.html">Regístrate aquí</a>
-      </p>>
-      </div>
-      <div id="form register" style="display: none;">
+      </p>
+    </form>
+      <div id="form-registro" style="display: none;">
         <h5 class="mb-3">Crear cuenta</h5>
 
         <div class="mb-3">
@@ -46,12 +46,12 @@
         </div>
 
         <div>
-          <label for="reg-password" class="form-label">Contraseña</label>
-          <input type="password" class="form-control" id="reg-password" required placeholder="Ingrese su contraseña"/>
+          <label for="reg-contraseña" class="form-label">Contraseña</label>
+          <input type="password" class="form-control" id="reg-contraseña" required placeholder="Ingrese su contraseña"/>
         </div>
 
-        <div id="register-error" class="text-danger small mb-2"></div>
-        <button id="btn-register" type="submit" class="btn btn-danger w-100">Registrarse</button>
+        <div id="registro-error" class="text-danger small mb-2"></div>
+        <button id="btn-registro" type="submit" class="btn btn-danger w-100">Registrarse</button>
 
         <hr class="my-4" />
 
