@@ -39,5 +39,6 @@ app.get('/', (req, res) => {
 require("./routes/video.routes.js")(app);
 require("./routes/user.routes.js")(app);
 require("./routes/auth.routes.js")(app);
+require("./routes/comment.routes.js")(app);
 
 module.exports = app;

@@ -57,6 +57,15 @@ npm start
 
 Al subir un vídeo se genera automáticamente: MP4, thumbnail y MPEG-DASH en 3 calidades (240p / 360p / 480p).
 
+### Comentarios
+| Método |         Ruta         | Auth |      Descripción      |
+|--------|----------------------|------|-----------------------|
+| GET    | `/comment/video/:id` | No   | Comentarios del video |
+| POST   | `/user/`             | Sí   | Crea el comentario    |
+| PUT    | `/comment/:id`       | Sí   | Edita el comentario   |
+| DELETE | `/comment/:id`       | Sí   | Elimina el comentario |
+
+
 ## Rutas protegidas
 
 Incluir el token en la cabecera:
