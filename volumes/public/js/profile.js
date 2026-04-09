@@ -16,6 +16,23 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
     // carga los videos del usuario
     await cargarVideosUsuario(usuario.id);
+
+    //click en "+" para cambiar el icono del usuario
+    document.getElementById('btn-cambiar-icono').addEventListener('click', function() {
+        document.getElementById('input-avatar').click(); //simula un click en el input oculto
+    });
+
+    //cuando se selecciona un archivo en el input de subida de icono
+    document.getElementById('input-avatar').addEventListener('change', async function() {
+        const archivo = this.files[0];
+        if (!archivo) {
+            return;
+        }
+        const respuesta= await subirArchivoAvatar(archivo); //llama a api.js para subir el nuevo icono del usuario
+        if(respuesta.avatar){
+            document.getElementById('avatar-usuario').src = URL + respuesta.avatar; //actualiza el avatar en la página
+        }
+    });
 });
 
 async function cargarVideosUsuario(idUsario) {

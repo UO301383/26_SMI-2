@@ -23,7 +23,7 @@ function botonesAuth(){
 
 
 //guarda sesión en localStorage después de iniciar sesión o registrarse
-function saveSession(token, user){
+function guardaSession(token, user){
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(user));
 }
@@ -35,7 +35,7 @@ function logout(){
 }
 
 //devuelve el usuario en sesión (si hay token, devuelve el usuario almacenado en localStorage, de lo contrario devuelve null)
-function getSessionUser(){
+function obtenerUsuarioEnSesion(){
     const user = localStorage.getItem('user');
     if (user){
         return JSON.parse(user);
@@ -44,7 +44,7 @@ function getSessionUser(){
 }
 
 //devuelve true si hay sesion activa, false si no
-function isLoggedIn(){
+function estaLogueado(){
     return !!localStorage.getItem('token');
 }
 
@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function(){
         });
     }
 
-    if (btnRegister){
+    if (btnRegister){S
         btnRegister.addEventListener('click', async function(e){
             const username = document.getElementById('register-username').value;
             const email = document.getElementById('register-email').value;

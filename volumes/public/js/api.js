@@ -1,7 +1,7 @@
 const URL = 'http://localhost:3000'; // Dirección del backend Express
 
 //devuelve los headers necesarios para las peticiones, si withAuth es true, incluye el token de autenticación en los headers.
-function getHearders(withAuth = false) {
+function obtenerHeaders(withAuth = false) {
     const token = localStorage.getItem('token');
     if(withAuth){
         const headers = { 'Content-Type': 'application/json' };
@@ -13,7 +13,7 @@ function getHearders(withAuth = false) {
 }
 
 // obtener todos los videos (con búsqueda opcional))
-async function getVideos(search) {
+async function obtenerVideos(search) {
     let url;
     if (search) {
         url = URL + '/videos?search=' + encodeURIComponent(search);
@@ -25,37 +25,37 @@ async function getVideos(search) {
 }
 
 //obtener un video por su ID
-async function getVideoById(id) {
+async function obtenerUsuarioId(id) {
     const response = await fetch(URL + '/video/' + id);
     return response.json();
 }
 
 //obtener videos de un usuario concreto
-async function getVideosByUser(userId) {
+async function obtenerVideosPorUsuario(userId) {
     const response = await fetch(URL + '/video/user/' + userId);
     return response.json();
 }
 
 //obtener playlist
-async function getPlaylist(){
+async function ObtenerPlaylist(){
     const response = await fetch(URL + '/playlist');
     return response.json();
 }
 
 //obtener todos los usuarios
-async function getUsers() {
+async function obtenerUsuarios() {
     const response = await fetch(URL + '/users');
     return response.json();
 }
 
 //obtener un usuario por su ID
-async function getUserById(id) {
+async function obtenerUsuarioId(id) {
     const response = await fetch(URL + '/user/' + id);
     return response.json();
 }
 
 //actualizar nombre y username del usuario en sesión (requiere autenticación)
-async function updateUser(id, userData) {
+async function actualizarUsuario(id, userData) {
     const res = await fetch(URL + /user/, {
         method: 'PUT',
         headers: getHearders(true),
@@ -75,7 +75,7 @@ async function login(email, password) {
 }
 
 //registrar usuario
-async function register(username, email, password) {
+async function registro(username, email, password) {
     const res = await fetch(URL + '/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -85,7 +85,7 @@ async function register(username, email, password) {
 }
 
 //subir foto del usuario en sesión (PUT /user/upload)
-async function uploadUserIcon(file) {
+async function subirArchivoAvatar(file) {
     const formData = new FormData();
     formData.append('avatar', file);
 
