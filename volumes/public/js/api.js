@@ -2,9 +2,9 @@ const baseURL = 'http://localhost:3000'; // Dirección del backend Express
 
 //devuelve los headers necesarios para las peticiones, si withAuth es true, incluye el token de autenticación en los headers.
 function obtenerHeaders(withAuth = false) {
-    const token = localStorage.getItem('token');
+    const headers = { 'Content-Type': 'application/json' };
     if(withAuth){
-        const headers = { 'Content-Type': 'application/json' };
+        const token = localStorage.getItem('token');
         if(token){
             headers['Authorization'] = `Bearer ${token}`;
         }
@@ -18,7 +18,7 @@ async function obtenerVideos(search) {
     if (search) {
         url = baseURL + '/videos?search=' + encodeURIComponent(search);
     } else{
-        url = URL + '/videos';
+        url = baseURL + '/videos';
     }
     const response = await fetch(url);
     return response.json();
