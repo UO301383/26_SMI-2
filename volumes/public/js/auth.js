@@ -91,6 +91,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
     if (btnRegistro){
         btnRegistro.addEventListener('click', async function(e){
+            e.preventDefault();
             const nombreUsuario = document.getElementById('reg-name').value;
             const email = document.getElementById('reg-email').value;
             const contraseña = document.getElementById('reg-contraseña').value;
