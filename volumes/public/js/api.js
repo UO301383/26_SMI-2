@@ -1,4 +1,4 @@
-const baseURL = 'http://localhost:3000'; // Dirección del backend Express
+const baseURL = 'http://192.168.1.129:3000'; // Dirección del backend Express
 
 //devuelve los headers necesarios para las peticiones, si withAuth es true, incluye el token de autenticación en los headers.
 function obtenerHeaders(withAuth = false) {

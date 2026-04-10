@@ -73,6 +73,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
     if (btnLogin){
         btnLogin.addEventListener('click', async function(e){
+            e.preventDefault();
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-contraseña').value;
             const error = document.getElementById('login-error');
