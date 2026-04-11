@@ -1,62 +1,118 @@
-//espera a que el HTML esté completamente cargado antes de ejecutar el código
-document.addEventListener('DOMContentLoaded', async function(){
+// espera a que el HTML esté completamente cargado antes de ejecutar el código
+document.addEventListener('DOMContentLoaded', async function () {
+    botonesAuth();
+    await cargarVideos();
+    const btnSubir = document.getElementById('btn-subir');
+    if (btnSubir) {
+        btnSubir.addEventListener('click', function () {
+            if (!estaLogueado()) {
+                window.location.href = 'auth.html';
+                return;
+            }
+            const modal = new bootstrap.Modal(document.getElementById('modal-subida'));
+            modal.show();
+        });
+    }
+    // Botón confirmar subida
+    const btnConfirmar = document.getElementById('btn-confirmar-subida');
+    if (btnConfirmar) {
+        btnConfirmar.addEventListener('click', async function () {
+            const titulo = document.getElementById('upload-titulo').value.trim();
+            const descripcion = document.getElementById('upload-descripcion').value.trim();
+            const archivo = document.getElementById('upload-archivo').files[0];
+            const error = document.getElementById('subida-error');
+            const progreso = document.getElementById('subida-progreso');
+            error.textContent = '';
+            if (!titulo) {
+                error.textContent = 'El título es obligatorio.';
+                return;
+            }
+            if (!archivo) {
+                error.textContent = 'Selecciona un archivo de vídeo.';
+                return;
+            }
+            btnConfirmar.disabled = true;
+            progreso.style.display = 'block';
+            const videoCreado = await crearVideo(titulo, descripcion);
 
-    botonesAuth(); //inicializa los botones de login y registro
+            if (!videoCreado || !videoCreado.id) {
+                error.textContent = videoCreado.error || 'Error al crear el vídeo.';
+                btnConfirmar.disabled = false;
+                progreso.style.display = 'none';
+                return;
+            }
+            const resultado = await subirArchivoVideo(videoCreado.id, archivo);
 
-    await cargarVideos(); //carga los videos en la página
-
+            btnConfirmar.disabled = false;
+            progreso.style.display = 'none';
+            if (resultado.id || resultado.path) {
+                bootstrap.Modal.getInstance(document.getElementById('modal-subida')).hide();
+                document.getElementById('upload-titulo').value = '';
+                document.getElementById('upload-descripcion').value = '';
+                document.getElementById('upload-archivo').value = '';
+                await cargarVideos();
+            } else {
+                error.textContent = resultado.error || 'Error al subir el archivo.';
+            }
+        });
+    }
     const busquedaForm = document.getElementById('busqueda-form');
-    if (busquedaForm){
-        busquedaForm.addEventListener('submit', async function(e){
+    if (busquedaForm) {
+        busquedaForm.addEventListener('submit', async function (e) {
             e.preventDefault();
             const termino = document.getElementById('busqueda-input').value;
-            await cargarVideos(termino); //carga los videos filtrados por el término de búsqueda
+            await cargarVideos(termino);
         });
     }
 });
+async function cargarVideos(busqueda) {
+    const grid = document.getElementById('video-grid');
+    grid.innerHTML = '<p class="text-muted">Cargando videos...</p>';
 
-// función para cargar los videos en el grid de la página principal
-async function cargarVideos(busqueda){
-    const grid = document.getElementById('video-grid'); // El div donde van las tarjetas
-    grid.innerHTML = '<p class="text-muted">Cargando videos...</p>';  // Limpia el contenido del grid antes de cargar los videos
-    const videos = await obtenerVideos(busqueda); //llama a api.js para obtener los videos, con el término de búsqueda si se proporcionó
-    if(!videos || videos.length === 0){
-        grid.innerHTML = '<p class="text-muted">No se encontraron videos</p>';
+    const videos = await obtenerVideos(busqueda);
+
+    if (!videos || videos.length === 0) {
+        if (busqueda) {
+            grid.innerHTML = `
+                <div class="col-12 text-center py-5">
+                    <p class="fs-4 text-muted">No se encontraron vídeos para "${busqueda}".</p>
+                </div>
+            `;
+        } else {
+            grid.innerHTML = `
+                <div class="col-12 text-center py-5">
+                    <p class="fs-4 text-muted">No hay vídeos disponibles todavía.</p>
+                    <p class="text-muted small">¡Sé el primero en subir uno!</p>
+                </div>
+            `;
+        }
         return;
     }
-    grid.innerHTML = ''; // Limpia el contenido del grid antes de cargar los videos
-
-    videos.forEach(function(video){
-        grid.innerHTML += crearTarjeta(video); // Agrega cada tarjeta al grid
+    grid.innerHTML = '';
+    videos.forEach(function (video) {
+        grid.innerHTML += crearTarjeta(video);
     });
 }
-
-//función para generar el HTML de una tarjeta de video a partir de los datos del video
-// Genera el HTML de una tarjeta de vídeo
 function crearTarjeta(video) {
-  let thumbnail;
-  if (video.thumbnail) {
-    thumbnail = baseURL + video.thumbnail; // Si tiene thumbnail, lo usa
-  } else {
-    thumbnail = ''; // Si no, imagen por defecto
-  }
-
-  return (
-    '<div class="col">' +
-        '<a href="player.html?id=' + video.id + '" class="text-decoration-none">' +
-            '<div class="card h-100 border-0">' +
-                /* Miniatura del vídeo */
-                '<img src="' + thumbnail + '" class="card-img-top" style="aspect-ratio:16/9; object-fit:cover;">' +
-                '<div class="card-body px-1">' +
-                    /* Título */
-                    '<p class="card-title fw-semibold text-dark mb-1" style="font-size:0.9rem;">' + video.title + '</p>' +
-                    /* Fecha */
-                    '<p class="text-muted mb-0" style="font-size:0.8rem;">' +
-                        new Date(video.createdAt).toLocaleDateString('es-ES') + /* Formatea la fecha en español */
-                    '</p>' +
+    let thumbnail;
+    if (video.thumbnail) {
+        thumbnail = baseURL + video.thumbnail;
+    } else {
+        thumbnail = '';
+    }
+    return (
+        '<div class="col">' +
+            '<a href="player.html?id=' + video.id + '" class="text-decoration-none">' +
+                '<div class="card h-100 border-0">' +
+                    '<img src="' + thumbnail + '" class="card-img-top" style="aspect-ratio:16/9; object-fit:cover;">' +
+                    '<div class="card-body px-1">' +
+                        '<p class="card-title fw-semibold text-dark mb-1" style="font-size:0.9rem;">' + video.title + '</p>' +
+                        '<p class="text-muted mb-0" style="font-size:0.8rem;">' +
+                            new Date(video.createdAt).toLocaleDateString('es-ES') +
+                        '</p>' +
+                    '</div>' +
                 '</div>' +
-            '</div>' +
-        '</a>' +
-    '</div>'
-);
+            '</a>' +
+        '</div>'
+    );
 }

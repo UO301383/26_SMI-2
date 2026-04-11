@@ -98,20 +98,21 @@ async function subirArchivoAvatar(file) {
 }
 
 //crear un nuevo video (POST /video) devolviendo el id del video creado para luego subir el archivo de video 
+ async function crearVideo(titulo, descripcion) {  
     const res = await fetch(baseURL + '/video', {
         method: 'POST',
         headers: obtenerHeaders(true),
-        body: JSON.stringify({ titulo, descripcion })
+        body: JSON.stringify({ title: titulo, description: descripcion })
     });
     return res.json();
 }
 
 //subir un archivo de video a un video ya creado (POST /video/:id/upload)
-async function subirArchivoVideo(file, videoId) {
+async function subirArchivoVideo(idVideo, file) {
     const formData = new FormData();
     formData.append('video', file);
     
-    const res = await fetch(baseURL +'/video/' + videoId + '/upload', {
+    const res = await fetch(baseURL +'/video/' + idVideo + '/upload', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
         body: formData
