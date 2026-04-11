@@ -119,5 +119,27 @@ async function subirArchivoVideo(idVideo, file) {
     });
     return res.json();
 }   
-
+function crearTarjeta(video) {
+    let thumbnail;
+    if (video.thumbnail) {
+        thumbnail = baseURL + video.thumbnail;
+    } else {
+        thumbnail = '';
+    }
+    return (
+        '<div class="col">' +
+            '<a href="player.html?id=' + video.id + '" class="text-decoration-none">' +
+                '<div class="card h-100 border-0">' +
+                    '<img src="' + thumbnail + '" class="card-img-top" style="aspect-ratio:16/9; object-fit:cover;">' +
+                    '<div class="card-body px-1">' +
+                        '<p class="card-title fw-semibold text-dark mb-1" style="font-size:0.9rem;">' + video.title + '</p>' +
+                        '<p class="text-muted mb-0" style="font-size:0.8rem;">' +
+                            new Date(video.createdAt).toLocaleDateString('es-ES') +
+                        '</p>' +
+                    '</div>' +
+                '</div>' +
+            '</a>' +
+        '</div>'
+    );
+}
 
