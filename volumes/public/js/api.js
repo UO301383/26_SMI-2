@@ -1,4 +1,6 @@
-const baseURL = 'http://192.168.1.129:3000'; // Dirección del backend Express
+const baseURL = window.location.hostname === 'localhost'
+    ? 'http://localhost:3000'
+    : window.location.protocol + '//' + window.location.hostname + ':3000';
 
 //devuelve los headers necesarios para las peticiones, si withAuth es true, incluye el token de autenticación en los headers.
 function obtenerHeaders(withAuth = false) {
@@ -38,13 +40,13 @@ async function obtenerVideosPorUsuario(userId) {
 
 //obtener playlist
 async function obtenerPlaylist(){
-    const response = await fetch(baseURL + '/playlist');
+    const response = await fetch(baseURL + '/video/playlist');
     return response.json();
 }
 
 //obtener todos los usuarios
 async function obtenerUsuarios() {
-    const response = await fetch(baseURL + '/users');
+    const response = await fetch(baseURL + '/user');
     return response.json();
 }
 
@@ -56,7 +58,7 @@ async function obtenerUsuarioId(id) {
 
 //actualizar nombre y username del usuario en sesión (requiere autenticación)
 async function actualizarUsuario(id, userData) {
-    const res = await fetch(baseURL + '/user/' + id, {
+    const res = await fetch(baseURL + '/user', {
         method: 'PUT',
         headers: obtenerHeaders(true),
         body: JSON.stringify(userData)
@@ -95,6 +97,31 @@ async function subirArchivoAvatar(file) {
         body: formData
     });
     return respuesta.json();
+}
+
+//obtener comentarios de un vídeo
+async function obtenerComentarios(videoId) {
+    const response = await fetch(baseURL + '/comment/video/' + videoId);
+    return response.json();
+}
+
+//publicar comentario
+async function publicarComentario(videoId, text) {
+    const res = await fetch(baseURL + '/comment', {
+        method: 'POST',
+        headers: obtenerHeaders(true),
+        body: JSON.stringify({ videoId, text })
+    });
+    return res.json();
+}
+
+//borrar comentario
+async function borrarComentario(commentId) {
+    const res = await fetch(baseURL + '/comment/' + commentId, {
+        method: 'DELETE',
+        headers: obtenerHeaders(true)
+    });
+    return res;
 }
 
 //crear un nuevo video (POST /video) devolviendo el id del video creado para luego subir el archivo de video 
@@ -142,4 +169,3 @@ function crearTarjeta(video) {
         '</div>'
     );
 }
-
