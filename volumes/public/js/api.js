@@ -16,9 +16,9 @@ function obtenerHeaders(withAuth = false) {
 async function obtenerVideos(search) {
     let url;
     if (search) {
-        url = baseURL + '/videos?search=' + encodeURIComponent(search);
+        url = baseURL + '/video?search=' + encodeURIComponent(search);
     } else{
-        url = baseURL + '/videos';
+        url = baseURL + '/video';
     }
     const response = await fetch(url);
     return response.json();
