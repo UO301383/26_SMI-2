@@ -11,28 +11,57 @@ document.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('username-usuario').textContent = '@' + usuario.username;
 
     //Pone el avatar del usuario si tiene uno, sino pone el avatar por defecto
-    if (usuario.avatar) {
-        document.getElementById('avatar-usuario').src = usuario.icon;
+    if (usuario.icon) {
+        document.getElementById('avatar-usuario').src = baseURL + usuario.icon;
     }
     // carga los videos del usuario
     await cargarVideosUsuario(usuario.id);
 
-    //click en "+" para cambiar el icono del usuario
-    document.getElementById('btn-cambiar-icono').addEventListener('click', function() {
-        document.getElementById('input-avatar').click(); //simula un click en el input oculto
-    });
+    const btnEditar = document.getElementById('btn-editar-perfil');
+    if(btnEditar){
+        btnEditar.addEventListener('click', function (){
+            document.getElementById('editar-nombre').value=usuario.name || '';
+            document.getElementById('editar-error').textContent='';
+            const modal=new bootstrap.Modal(document.getElementById('modal-editar-perfil'));
+            modal.show();
+        });
+    }
+    const btnConfirmarEditar=document.getElementById('btn-confirmar-editar');
+    if(btnConfirmarEditar){
+        btnConfirmarEditar.addEventListener('click',async function (){
+            const nombre=document.getElementById('editar-nombre').value.trim();
+            const archivoAvatar=document.getElementById('editar-avatar').files[0];
+            const error=document.getElementById('editar-error');
 
-    //cuando se selecciona un archivo en el input de subida de icono
-    document.getElementById('input-avatar').addEventListener('change', async function() {
-        const archivo = this.files[0];
-        if (!archivo) {
-            return;
-        }
-        const respuesta= await subirArchivoAvatar(archivo); //llama a api.js para subir el nuevo icono del usuario
-        if(respuesta.avatar){
-            document.getElementById('avatar-usuario').src = baseURL + respuesta.icon; //actualiza el avatar en la página
-        }
-    });
+            error.textContent='';
+            if (!nombre){
+                error.textContent='El nombre es obligatorio';
+                return;
+            }
+
+            btnConfirmarEditar.disabled=true;
+
+            const resultado= await actualizarUsuario(usuario.id, {name:nombre});
+
+            if(!resultado.id){
+                error.textContent=resultado.error || 'Error al actualizar el perfil.';
+                btnConfirmarEditar.disabled=false;
+                return;
+            }
+            if(archivoAvatar){
+                const resAvatar=await subirArchivoAvatar(archivoAvatar);
+                if(resAvatar.icon){
+                    document.getElementById('avatar-usuario').src = baseURL + resAvatar.icon;
+                }
+            }
+
+            usuario.name = nombre;
+            localStorage.setItem('user', JSON.stringify(usuario));
+            document.getElementById('nombre-usuario').textContent=nombre;
+            btnConfirmarEditar.disabled=false;
+            bootstrap.Modal.getInstance(document.getElementById('modal-editar-perfil')).hide();
+        });
+    }
 });
 
 async function cargarVideosUsuario(idUsario) {
