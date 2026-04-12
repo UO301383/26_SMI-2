@@ -4,9 +4,14 @@ const db = require('../models/db.js');
 const User = db.User;
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const axios = require('axios');
 
 const authConfig = require('../config/auth.config.js');
 const SECRET_KEY = authConfig.secret;
+
+const OPENFIRE_URL = 'http://192.168.1.84:9090/plugins/restapi/v1';
+const OPENFIRE_SECRET = 'secretkey';
+
 
 // Registrar un nuevo usuario (POST /signup)
 module.exports.signup = async (req, res, next) => {
@@ -29,7 +34,25 @@ module.exports.signup = async (req, res, next) => {
             icon: ''
         });
 
-        // 4. Respondemos sin devolver la contraseña
+        // 4. Creamos el usuario en Openfire para el chat
+        try {
+            await axios.post(`${OPENFIRE_URL}/users`, {
+                username: req.body.username,
+                password: req.body.password,
+                name:     req.body.name,
+                email:    req.body.email
+            }, {
+                headers: {
+                    'Authorization': OPENFIRE_SECRET,
+                    'Content-Type': 'application/json'
+                }
+            });
+        } catch (openfireError) {
+            // Si falla Openfire no bloqueamos el registro, solo lo avisamos
+            console.warn("Usuario creado en MySQL pero no en Openfire:", openfireError.message);
+        }
+
+        // 5. Respondemos sin devolver la contraseña
         const { password, ...userWithoutPassword } = newUser.dataValues;
         res.status(201).json(userWithoutPassword);
 
