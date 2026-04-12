@@ -16,16 +16,22 @@ const OPENFIRE_SECRET = 'secretkey';
 // Registrar un nuevo usuario (POST /signup)
 module.exports.signup = async (req, res, next) => {
     try {
-        // 1. Comprobamos que no exista ya un usuario con ese email
+        // 1. Comprobamos que no exista ya un usuario con ese email 
         const existingUser = await User.findOne({ where: { email: req.body.email } });
         if (existingUser) {
             return res.status(409).json({ error: "Ya existe un usuario con ese email." });
         }
 
-        // 2. Ciframos la contraseña antes de guardarla
+        // 2. Comprobamos que no exista ya un usuario con ese username
+        const existingName = await User.findOne({ where: { username: req.body.username } });
+        if (existingName) {
+            return res.status(409).json({ error: "Este nombre de usuario ya esta en uso."})
+        }
+
+        // 3. Ciframos la contraseña antes de guardarla
         const hashedPassword = await bcrypt.hash(req.body.password, authConfig.salt);
 
-        // 3. Creamos el usuario con la contraseña cifrada
+        // 4. Creamos el usuario con la contraseña cifrada
         const newUser = await User.create({
             name: req.body.name,
             email: req.body.email,
@@ -34,7 +40,7 @@ module.exports.signup = async (req, res, next) => {
             icon: ''
         });
 
-        // 4. Creamos el usuario en Openfire para el chat
+        // 5. Creamos el usuario en Openfire para el chat
         try {
             await axios.post(`${OPENFIRE_URL}/users`, {
                 username: req.body.username,
@@ -52,7 +58,7 @@ module.exports.signup = async (req, res, next) => {
             console.warn("Usuario creado en MySQL pero no en Openfire:", openfireError.message);
         }
 
-        // 5. Respondemos sin devolver la contraseña
+        // 6. Respondemos sin devolver la contraseña
         const { password, ...userWithoutPassword } = newUser.dataValues;
         res.status(201).json(userWithoutPassword);
 
