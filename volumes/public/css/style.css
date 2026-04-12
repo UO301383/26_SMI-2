@@ -1,0 +1,99 @@
+/* variables de color*/
+:root {
+  --rojo: #ff0000;       
+  /* logo y acciones principales */
+  --gris: #606060;       
+  /* metadatos: usuario, fecha, visualizaciones */
+  --negro: #0f0f0f;      
+  /* títulos */
+}
+
+/* cuerpo */
+body {
+    font-family: 'Roboto', Arial, sans-serif; 
+    /* fuente similar a YouTube */
+    color: var(--negro);
+    background-color: #ffffff;
+}
+
+/* logo navbar */
+.navbar-brand {
+    color: var(--rojo) !important; 
+    /* sobreescribe el text-danger de Bootstrap */
+    font-size: 1.4rem;
+}
+/* ── tarjetas de video ── */
+.card {
+  border-radius: 12px;
+  /*esquinas redondeadas en la tarjeta del formnulario */
+  border: none;
+  transition: transform 0.2s; 
+  /* animación suave al pasar el ratón */
+}
+
+.card:hover {
+  transform: translateY(-4px); 
+  /* sube un poco */
+  cursor: pointer;
+}
+
+.card-img-top {
+  border-radius: 8px;          
+  /* esquinas redondeadas en la miniatura */
+  aspect-ratio: 16 / 9;        
+  /* proporción YouTube */
+  object-fit: cover;           
+  /* recorta sin deformar */
+}
+
+.card-title {
+  color: var(--negro);
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.card .text-muted {
+  color: var(--gris) !important; /* metadatos en gris */
+  font-size: 0.8rem;
+}
+
+/* barra de navegación */
+.navbar {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  /*sombra sutil debajo de la barra de navegación*/
+}
+
+/*botones rojos*/
+.btn-danger{
+  background-color: var(--rojo) !important;
+  border-color: var(--rojo) !important;
+}
+
+.btn-outline-danger{
+  color: var(--rojo) !important;
+  border-color: var(--rojo) !important;
+}
+
+.btn-outline-danger:hover{
+  background-color: var(--rojo) !important;
+  color: #ffffff !important;
+}
+
+.form-control:focus{
+  border-color: var(--rojo);
+  /*borde rojo al hacer foco*/
+  box-shadow: 0 0 0 0.2rem rgba(255, 0, 0, 0.25);
+  /* sombra roja al hacer foco*/
+}
+
+a {
+  color: var(--rojo);
+  text-decoration: none; 
+  /* sin subrayado por defecto*/
+}
+
+a:hover {
+  text-decoration: underline; 
+  /* subrayado al pasar el ratón */
+}

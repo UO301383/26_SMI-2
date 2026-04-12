@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Autenticación - 26-SMI-2</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="bg-light d-flex justify-content-center align-items-center min-vh-100">
+ <div class="card shadow p-4" style="width: 100%; max-width: 400px;">
+    <h1 class="card-title mb-4 text-center">Iniciar Sesión</h1>
+    <form id="login-form"> <!-- Formulario de inicio de sesión-->
+        
+      <div class="mb-3">
+        <h5 class="mb-3">Usuario:</h5>
+        <label for="login-email" class="form-label">Correo electrónico</label>
+        <input type="email" class="form-control" id="login-email" required  placeholder="Ingrese su correo electrónico"/>
+      </div>
+
+      <div>
+        <label for="login-contraseña" class="form-label">Contraseña</label>
+        <input type="password" class="form-control" id="login-contraseña" required placeholder="Ingrese su contraseña"/>
+      </div>
+
+      <div id="login-error" class="text-danger small mb-2"></div> <!-- Mensaje de error en el caso de que el login falle -->
+      <button id="btn-login"type="submit" class="btn btn-danger w-100">Iniciar Sesión</button> <!-- Botón para enviar el formulario (ocupa todo el ancho de la tarjeta)-->
+
+      <hr class="my-4" />
+      <p class="text-center text-muted small">
+        ¿No tienes una cuenta? 
+        <a href="#" id="show-register">Regístrate aquí</a>
+      </p>
+    </form>
+      <div id="form-registro" style="display: none;">
+        <h5 class="mb-3">Crear cuenta</h5>
+
+        <div class="mb-3">
+          <label for="reg-name" class="form-label">Nombre</label>
+          <input type="text" class="form-control" id="reg-name" required placeholder="Ingrese su nombre"/>
+        </div>
+
+        <div class="mb-3">
+          <label for="reg-email" class="form-label">Correo electrónico</label>
+          <input type="email" class="form-control" id="reg-email" required placeholder="Ingrese su correo electrónico"/>
+        </div>
+
+        <div>
+          <label for="reg-contraseña" class="form-label">Contraseña</label>
+          <input type="password" class="form-control" id="reg-contraseña" required placeholder="Ingrese su contraseña"/>
+        </div>
+
+        <div id="registro-error" class="text-danger small mb-2"></div>
+        <button id="btn-registro" type="submit" class="btn btn-danger w-100">Registrarse</button>
+
+        <hr class="my-4" />
+
+        <p class="text-center text-muted small">
+          ¿Ya tienes una cuenta? 
+          <a href="auth.html">Inicia sesión aquí</a>
+        </p>
+        </div>
+    </div>
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/api.js"></script>   <!-- Define BASE_URL y funciones fetch -->
+  <script src="js/auth.js"></script>  <!-- Lógica de login, registro y sesión -->
+</body>
+</html>
+
+
+    
