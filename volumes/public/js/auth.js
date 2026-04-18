@@ -26,12 +26,14 @@ function botonesAuth(){
 function guardaSession(token, user){
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(user));
+    localStorage.setItem('xmpp_password',password);
 }
 
 //cerrar sesión
 function logout(){
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('xmpp_password')
     window.location.href = 'index.html';
 }
 
@@ -81,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function(){
             const res = await login(email, password); //llama a api.js
 
             if (res.token){
-                guardaSession(res.token, res.user);
+                guardaSession(res.token, res.user, password);
                 window.location.href = 'index.html';
             } else {
                 error.textContent = res.message || 'Error al iniciar sesión';
@@ -102,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function(){
             if(res.id){
                 const loginRes = await login(email, contraseña);
                 if(loginRes.token){
-                    guardaSession(loginRes.token, loginRes.user);
+                    guardaSession(loginRes.token, loginRes.user, contraseña);
                     window.location.href = 'index.html';
                 } else {
                 error.textContent = 'Registro OK pero error al iniciar sesión automáticamente';
