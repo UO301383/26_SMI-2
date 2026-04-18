@@ -23,7 +23,7 @@ function botonesAuth(){
 
 
 //guarda sesión en localStorage después de iniciar sesión o registrarse
-function guardaSession(token, user){
+function guardaSession(token, user, password){
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(user));
     localStorage.setItem('xmpp_password',password);
