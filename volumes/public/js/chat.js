@@ -12,13 +12,19 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
+    // Obtenemos la IP del servidor dinámicamente
+    const openfireHost = window.location.hostname;
+    const boshUrl = `http://${openfireHost}:7070/http-bind`;
+
     // Inicializamos converse.js con los datos del usuario en sesión
     converse.initialize({
-        bosh_service_url: 'http://192.168.1.84:7070/http-bind',
-        default_domain:   '192.168.1.84',
-        view_mode:        'fullscreen',
-        auto_login:       true,
-        jid:              `${user.username}@192.168.1.84`,
-        password:         xmppPassword
-    });
+      bosh_service_url:            `http://${openfireHost}:7070/http-bind`,
+      default_domain:              openfireHost,
+      view_mode:                   'fullscreen',
+      auto_login:                  true,
+      jid:                         `${user.username}@${openfireHost}`,
+      password:                    xmppPassword,
+      discover_connection_methods: false,
+      locales:                     []
+  });
 });
