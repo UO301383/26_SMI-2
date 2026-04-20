@@ -56,6 +56,20 @@ services:
     networks:
       - smi_network
 
+  openfire:
+    image: miguelwill/docker-openfire
+    container_name: smi-openfire
+    restart: always
+    ports:
+      - "9090:9090"
+      - "5222:5222"
+      - "7070:7070"
+    volumes:
+      - ./volumes/lib-openfire/plugins:/var/lib/openfire/plugins
+      - ./volumes/lib-openfire/logs:/var/lib/openfire/logs
+    networks:
+      - smi_network
+
 networks:
   smi_network:
     driver: bridge
