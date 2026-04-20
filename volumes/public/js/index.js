@@ -1,4 +1,4 @@
-// espera a que el HTML esté completamente cargado antes de ejecutar el código
+0// espera a que el HTML esté completamente cargado antes de ejecutar el código
 document.addEventListener('DOMContentLoaded', async function () {
     botonesAuth();
     await cargarVideos();
@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             if (!titulo) {
                 error.textContent = 'El título es obligatorio.';
                 return;
+                
             }
             if (!archivo) {
                 error.textContent = 'Selecciona un archivo de vídeo.';

@@ -22,7 +22,7 @@ body {
     /* sobreescribe el text-danger de Bootstrap */
     font-size: 1.4rem;
 }
-/* ── tarjetas de video ── */
+/* tarjetas de video */
 .card {
   border-radius: 12px;
   /*esquinas redondeadas en la tarjeta del formnulario */
