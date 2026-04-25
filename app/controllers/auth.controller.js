@@ -9,7 +9,8 @@ const axios = require('axios');
 const authConfig = require('../config/auth.config.js');
 const SECRET_KEY = authConfig.secret;
 
-const OPENFIRE_URL = 'http://192.168.1.84:9090/plugins/restapi/v1';
+const OPENFIRE_HOST = process.env.OPENFIRE_HOST || 'localhost';
+const OPENFIRE_URL = `http://${OPENFIRE_HOST}:9090/plugins/restapi/v1`;
 const OPENFIRE_SECRET = 'secretkey';
 
 

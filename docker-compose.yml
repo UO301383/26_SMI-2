@@ -67,6 +67,8 @@ services:
     volumes:
       - ./volumes/lib-openfire/plugins:/var/lib/openfire/plugins
       - ./volumes/lib-openfire/logs:/var/lib/openfire/logs
+    environment:
+      - OPENFIRE_HOST=smi-openfire
     networks:
       - smi_network
 
