@@ -31,6 +31,7 @@ services:
       - DATABASE_HOST=db
       - DATABASE_PORT=3306
       - WAIT_HOSTS=db:3306
+      - OPENFIRE_HOST=smi-openfire
     ports:
       - "3000:3000"
     volumes:
@@ -67,8 +68,6 @@ services:
     volumes:
       - ./volumes/lib-openfire/plugins:/var/lib/openfire/plugins
       - ./volumes/lib-openfire/logs:/var/lib/openfire/logs
-    environment:
-      - OPENFIRE_HOST=smi-openfire
     networks:
       - smi_network
 
