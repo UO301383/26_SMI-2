@@ -1,9 +1,10 @@
-// User controller
+﻿// User controller
 
 const db = require('../models/db.js');
 const User = db.User;
 const fs = require('fs');
 const path = require('path');
+const storageConfig = require('../config/storage.config.js');
 
 // Consultar todos los usuarios (GET /user)
 module.exports.getAll = async (req, res, next) => {
@@ -60,10 +61,11 @@ module.exports.uploadIcon = async (req, res, next) => {
         if (!req.file) {
             return res.status(400).json({ error: "No se ha subido ningún archivo." });
         }
-        const rutaDestino = '/public/users/user-' + user.id + '.jpg';
+        const filename = 'user-' + user.id + '.jpg';
+        const rutaDestino = path.join(storageConfig.usersDir, filename);
         fs.renameSync(req.file.path, rutaDestino);
-        await user.update({ icon: '/users/user-' + user.id + '.jpg' });
-        res.status(200).json({ icon: '/users/user-' + user.id + '.jpg' });
+        await user.update({ icon: '/users/' + filename });
+        res.status(200).json({ icon: '/users/' + filename });
     } catch (error) {
         console.error('uploadIcon error:', error);
         res.status(500).json({ error: "Error al subir el icono del usuario." });
