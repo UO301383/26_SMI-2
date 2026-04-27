@@ -182,17 +182,71 @@ async function cargarComentarios(videoId) {
 }
 
 function crearComentarioHtml(comment) {
-    return (
-        '<article class="card p-3">' +
+    let html = 
+        '<article class="card p-3 mb-2" id="com-' + comment.id + '">' +
             '<div class="d-flex justify-content-between align-items-start gap-3">' +
                 '<div>' +
                     '<p class="fw-semibold mb-1">Usuario #' + comment.userId + '</p>' +
-                    '<p class="mb-0">' + escaparHtml(comment.text) + '</p>' +
+                    '<p class="mb-0" id="texto-' + comment.id + '">' + escaparHtml(comment.text) + '</p>' +
                 '</div>' +
-                '<small class="text-muted">' + new Date(comment.createdAt).toLocaleString('es-ES') + '</small>' +
+                '<div class="text-end">' +
+                    '<small class="text-muted d-block mb-1">' + new Date(comment.createdAt).toLocaleString('es-ES') + '</small>';
+
+    // Añadimos los botones de forma sencilla si hay sesión iniciada
+    if (estaLogueado()) {
+        html += 
+            '<button class="btn btn-sm btn-link text-decoration-none p-0 me-2" onclick="editarComentario(' + comment.id + ')">Editar</button>' +
+            '<button class="btn btn-sm btn-link text-decoration-none text-danger p-0" onclick="borrarComentario(' + comment.id + ')">Borrar</button>';
+    }
+
+    html += 
+                '</div>' +
             '</div>' +
-        '</article>'
-    );
+        '</article>';
+
+    return html;
+}
+async function borrarComentario(id) {
+    if (!confirm('¿Borrar comentario?')) return;
+
+    const response = await fetch(baseURL + '/comment/' + id, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+        }
+    });
+
+    if (response.ok) {
+        // Si va bien, borramos la caja entera del HTML
+        document.getElementById('com-' + id).remove();
+    } else {
+        // Si va mal (ej. error 403), sacamos un alert simple
+        alert('No se pudo borrar el comentario. Asegúrate de que es tuyo.');
+    }
+}
+
+async function editarComentario(id) {
+    const parrafo = document.getElementById('texto-' + id);
+    const nuevoTexto = prompt('Editar comentario:', parrafo.innerText);
+
+    // Si cancela o no hay texto nuevo, no hacemos nada
+    if (!nuevoTexto || nuevoTexto === parrafo.innerText) return;
+
+    const response = await fetch(baseURL + '/comment/' + id, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+        },
+        body: JSON.stringify({ text: nuevoTexto })
+    });
+
+    if (response.ok) {
+        // Si va bien, cambiamos el texto en la pantalla
+        parrafo.innerText = nuevoTexto;
+    } else {
+        alert('No se pudo editar el comentario. Asegúrate de que es tuyo.');
+    }
 }
 
 function escaparHtml(text) {
