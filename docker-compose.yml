@@ -50,12 +50,26 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - ./volumes/public:/usr/share/nginx/html:ro
+      - ./volumes/public/videos:/usr/share/nginx/html/videos:ro
+      - ./volumes/public/users:/usr/share/nginx/html/users:ro
     environment:
       - NGINX_PORT=80
     networks:
       - smi_network
 
+  frontend:
+    image: nginx
+    container_name: smi-frontend
+    restart: always
+    ports:
+      - "8081:80"
+    volumes:
+      - ./volumes/public:/usr/share/nginx/html:ro
+    environment:
+      - NGINX_PORT=80
+    networks:
+      - smi_network
+  
   openfire:
     image: miguelwill/docker-openfire
     container_name: smi-openfire
