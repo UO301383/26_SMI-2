@@ -60,13 +60,10 @@ module.exports.uploadIcon = async (req, res, next) => {
         if (!req.file) {
             return res.status(400).json({ error: "No se ha subido ningún archivo." });
         }
-
         const rutaDestino = '/public/users/user-' + user.id + '.jpg';
         fs.renameSync(req.file.path, rutaDestino);
-
         await user.update({ icon: '/users/user-' + user.id + '.jpg' });
         res.status(200).json({ icon: '/users/user-' + user.id + '.jpg' });
-
     } catch (error) {
         console.error('uploadIcon error:', error);
         res.status(500).json({ error: "Error al subir el icono del usuario." });
