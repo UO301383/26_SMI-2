@@ -2,6 +2,10 @@ const baseURL = window.location.hostname === 'localhost'
     ? 'http://localhost:3000'
     : window.location.protocol + '//' + window.location.hostname + ':3000';
 
+const staticURL = window.location.hostname === 'localhost'
+    ? 'http://localhost:8080'
+    : window.location.protocol + '//' + window.location.hostname + ':8080';
+
 //devuelve los headers necesarios para las peticiones, si withAuth es true, incluye el token de autenticación en los headers.
 function obtenerHeaders(withAuth = false) {
     const headers = { 'Content-Type': 'application/json' };
@@ -149,7 +153,7 @@ async function subirArchivoVideo(idVideo, file) {
 function crearTarjeta(video) {
     let thumbnail;
     if (video.thumbnail) {
-        thumbnail = baseURL + video.thumbnail;
+        thumbnail = staticURL + video.thumbnail;
     } else {
         thumbnail = '';
     }
