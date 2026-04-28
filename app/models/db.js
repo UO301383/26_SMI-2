@@ -24,9 +24,13 @@ const db = {};
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
-// Load models
+// carga models
 db.video = require('./video.model.js')(sequelize, Sequelize);
 db.User = require('./user.model.js')(sequelize, Sequelize);
 db.Comment = require('./comment.model.js')(sequelize, Sequelize)
+
+//Cada comentario pertence a un usuario, pero un usuario puede tener muchos comentarios
+db.Comment.belongsTo(db.User, { foreignKey: 'userId' });
+db.User.hasMany(db.Comment, { foreignKey: 'userId' });
 
 module.exports = db;

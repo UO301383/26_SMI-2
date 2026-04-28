@@ -13,6 +13,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     configurarControlesReproductor();
     configurarFormularioComentarios(videoId);
+    configurarModalEditarComentario();
+    configurarModalBorrarComentario();
 
     await cargarVideo(videoId);
     await cargarComentarios(videoId);
@@ -182,14 +184,46 @@ async function cargarComentarios(videoId) {
 }
 
 function crearComentarioHtml(comment) {
+    //backend devuelve datos del autor en comment.user gracias al join con User en el controlador)
+    const autor = comment.User || {};
+    const username = autor.username || 'Usuario desconocido';
+
+    //avatar con foto de perfil
+    let avatarHtml;
+    if (autor.icon) {
+        avatarHtml = '<img src="' + baseURL + autor.icon + '" ' + 'alt="' + escaparHtml(username) + '" class="rounded-circle" style="width:36px;height:36px;object-fit:cover;flex-shrink:0;">"'; 
+    } else {
+        const incial = username.charAt(0).toUpperCase();
+        avatarHtml = '<div class="comment-avatar rounded-circle me-2 d-flex align-items-center justify-content-center bg-secondary text-white" ' +
+                     'style="width: 40px; height: 40px; font-weight: bold;"' +
+                     '>' + incial + '</div>';
+    }
+    const usuarioLocal = obtenerUsuarioLocal();
+    const puedeGestionar = estaLogueado() && usuarioLocal && (usuarioLocal.id === comment.userId || usuarioLocal.role === 'admin');
+    
+    let botonesHtml = '';
+    if (puedeGestionar) {
+        botonesHtml = '<button class="btn btn-sm btn-link text-decoration-none p-0 me-2" ' + 'onclick="editarComentario(' + comment.id + ')">Editar</button>' + 
+                '<button class="btn btn-sm btn-link text-decoration-none text-danger p-0" ' + 'onclick="borrarComentario(' + comment.id + ')">Borrar</button>';
+    }
     return (
-        '<article class="card p-3">' +
-            '<div class="d-flex justify-content-between align-items-start gap-3">' +
-                '<div>' +
-                    '<p class="fw-semibold mb-1">Usuario #' + comment.userId + '</p>' +
-                    '<p class="mb-0">' + escaparHtml(comment.text) + '</p>' +
+        '<article class="card p-3 mb-2" id="com-' + comment.id + '">' +
+            '<div class="d-flex gap-3">' +
+                avatarHtml +
+                '<div class="flex-grow-1">' +
+                    '<div class="d-flex justify-content-between align-items-start">' +
+                        '<div>' +
+                            '<span class="fw-semibold">' + escaparHtml(username) + '</span>' +
+                            '<small class="text-muted ms-2">' +
+                                new Date(comment.createdAt).toLocaleString('es-ES') +
+                            '</small>' +
+                        '</div>' +
+                        '<div>' + botonesHtml + '</div>' +
+                    '</div>' +
+                    '<p class="mb-0 mt-1" id="texto-' + comment.id + '">' +
+                        escaparHtml(comment.text) +
+                    '</p>' +
                 '</div>' +
-                '<small class="text-muted">' + new Date(comment.createdAt).toLocaleString('es-ES') + '</small>' +
             '</div>' +
         '</article>'
     );
@@ -202,6 +236,19 @@ function escaparHtml(text) {
         .replaceAll('>', '&gt;')
         .replaceAll('"', '&quot;')
         .replaceAll("'", '&#039;');
+}
+
+async function borrarComentario(id){
+    document.getElementById('borrar-comentario-id').value = id;
+    const modal = new bootstrap.Modal(document.getElementById('modal-confirmar-borrar'));
+    modal.show();
+}
+async function editarComentario(id) {
+    const parrafo = document.getElementById('com-text-' + id);
+    document.getElementById('editar-comentario-id').value = id;
+    document.getElementById('editar-comentario-text').value = parrafo.innerHTML;
+    const modal = new bootstrap.Modal(document.getElementById('modal-editar-comentario'));
+    modal.show();
 }
 
 function configurarFormularioComentarios(videoId) {
@@ -237,3 +284,38 @@ function configurarFormularioComentarios(videoId) {
         await cargarComentarios(videoId);
     });
 }
+
+function configurarModalEditarComentario() {
+    const btn = document.getElementById('btn-confirmar-editar-comentario');
+    if (!btn) return;
+
+    btn.addEventListener('click', async function () {
+        const id = document.getElementById('editar-comentario-id').value;
+        const textoNuevo = document.getElementById('editar-comentario-text').value.trim();
+        const error = document.getElementById('editar-comentario-error');
+
+        error.textContent = '';
+        if (!textoNuevo) {
+            error.textContent = 'El comentario no puede estar vacío.';
+            return;
+        }
+        btn.disabled = true;
+        const respuesta = await fetch(baseURL + 'comment/' + id, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + obtenerToken()
+            },
+            body: JSON.stringify({ text: textoNuevo })
+        });
+        btn.disabled = false;
+        if (respuesta.ok) {
+            document.getElementById('texto-' + id).textContent = textoNuevo;
+            bootstrap.Modal.getInstance(document.getElementById('modal-editar-comentario')).hide();
+        } else {
+            error.textContent = 'Error al editar el comentario.';
+        }
+    });
+}
+
+
