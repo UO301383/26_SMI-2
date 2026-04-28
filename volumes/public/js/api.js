@@ -169,3 +169,20 @@ function crearTarjeta(video) {
         '</div>'
     );
 }
+
+function obtenerUsuarioLocal(){
+    const usuarioLocal = localStorage.getItem('user');
+    if (!usuarioLocal){
+        return null;
+    }
+    try{
+        return JSON.parse(usuarioLocal)
+    }catch{
+        return null;
+    }
+}
+
+function esAdmin(){
+    const user = obtenerUsuarioLocal()
+    return user && user.role === 'admin';
+}
