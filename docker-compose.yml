@@ -32,6 +32,8 @@ services:
       - DATABASE_PORT=3306
       - WAIT_HOSTS=db:3306
       - OPENFIRE_HOST=smi-openfire
+      - VIDEOS_DIR=/public/videos
+      - USERS_DIR=/public/users
     ports:
       - "3000:3000"
     volumes:
