@@ -24,7 +24,7 @@ COMMON_ARGS=(
   -filter_complex "$FILTER_COMPLEX"
   -c:v libx264
   -preset veryfast
-  -profile:v main
+  -profile:v baseline
   -g 48
   -keyint_min 48
   -sc_threshold 0
