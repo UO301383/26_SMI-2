@@ -31,6 +31,7 @@ COMMON_ARGS=(
   -b:v:0 400k -maxrate:v:0 428k -bufsize:v:0 600k
   -b:v:1 900k -maxrate:v:1 963k -bufsize:v:1 1200k
   -b:v:2 1600k -maxrate:v:2 1712k -bufsize:v:2 2400k
+  -streaming 0
   -use_timeline 1
   -use_template 1
   -init_seg_name "init-\$RepresentationID\$.m4s"
