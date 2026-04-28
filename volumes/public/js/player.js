@@ -244,7 +244,7 @@ function borrarComentario(id){
     modal.show();
 }
 function editarComentario(id) {
-    const parrafo = document.getElementById('texto' + id);
+    const parrafo = document.getElementById('texto-' + id);
     document.getElementById('editar-comentario-id').value = id;
     document.getElementById('editar-comentario-texto').value = parrafo.innerText;
     document.getElementById('editar-comentario-error').textContent = '';
@@ -320,11 +320,11 @@ function configurarModalEditarComentario() {
     });
 }
 function configurarModalBorrarComentario() {
-    const btn = document.getElementById('borrar-comentario-id');
+    const btn = document.getElementById('btn-confirmar-borrar-comentario');
     if (!btn) return;
 
     btn.addEventListener('click', async function () {
-        const id = document.getElementById('borrar-confirmar-borrar-comentario').value;
+        const id = document.getElementById('borrar-comentario-id').value;
 
         btn.disabled = true;
         const respuesta = await fetch(baseURL + '/comment/' + id, {
