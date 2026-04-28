@@ -244,9 +244,9 @@ function borrarComentario(id){
     modal.show();
 }
 function editarComentario(id) {
-    const parrafo = document.getElementById('com-text-' + id);
+    const parrafo = document.getElementById('texto' + id);
     document.getElementById('editar-comentario-id').value = id;
-    document.getElementById('editar-comentario-texto').value = parrafo.innerHTML;
+    document.getElementById('editar-comentario-texto').value = parrafo.innerText;
     document.getElementById('editar-comentario-error').textContent = '';
 
     const modal = new bootstrap.Modal(document.getElementById('modal-editar-comentario'));
