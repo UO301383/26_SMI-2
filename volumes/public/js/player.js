@@ -114,7 +114,7 @@ function reproducirMp4() {
     const videoElement = document.getElementById('video-player');
     destruirDashSiExiste();
 
-    videoElement.src = baseURL + currentVideo.path;
+    videoElement.src = staticURL + currentVideo.path;
     videoElement.load();
     actualizarBotonesModo(false);
 }
@@ -144,7 +144,7 @@ function reproducirDash() {
         manejarFalloDash('No se pudo reproducir el contenido DASH. Se vuelve al modo MP4.');
     });
 
-    dashPlayer.initialize(videoElement, baseURL + currentVideo.dash, true);
+    dashPlayer.initialize(videoElement, staticURL + currentVideo.dash, true);
 
     dashTimeoutId = setTimeout(function () {
         const noHaArrancado = videoElement.readyState < 2 || videoElement.currentTime === 0;
