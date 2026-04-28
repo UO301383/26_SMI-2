@@ -191,7 +191,7 @@ function crearComentarioHtml(comment) {
     //avatar con foto de perfil
     let avatarHtml;
     if (autor.icon) {
-        avatarHtml = '<img src="' + baseURL + autor.icon + '" ' + 'alt="' + escaparHtml(username) + '" class="rounded-circle" style="width:36px;height:36px;object-fit:cover;flex-shrink:0;">"'; 
+        avatarHtml = '<img src="' + staticURL + autor.icon + '" ' + 'alt="' + escaparHtml(username) + '" class="rounded-circle" style="width:36px;height:36px;object-fit:cover;flex-shrink:0;">'; 
     } else {
         const incial = username.charAt(0).toUpperCase();
         avatarHtml = '<div class="comment-avatar rounded-circle me-2 d-flex align-items-center justify-content-center bg-secondary text-white" ' +
@@ -238,15 +238,17 @@ function escaparHtml(text) {
         .replaceAll("'", '&#039;');
 }
 
-async function borrarComentario(id){
+function borrarComentario(id){
     document.getElementById('borrar-comentario-id').value = id;
     const modal = new bootstrap.Modal(document.getElementById('modal-confirmar-borrar'));
     modal.show();
 }
-async function editarComentario(id) {
+function editarComentario(id) {
     const parrafo = document.getElementById('com-text-' + id);
     document.getElementById('editar-comentario-id').value = id;
-    document.getElementById('editar-comentario-text').value = parrafo.innerHTML;
+    document.getElementById('editar-comentario-texto').value = parrafo.innerHTML;
+    document.getElementById('editar-comentario-error').textContent = '';
+
     const modal = new bootstrap.Modal(document.getElementById('modal-editar-comentario'));
     modal.show();
 }
@@ -291,7 +293,7 @@ function configurarModalEditarComentario() {
 
     btn.addEventListener('click', async function () {
         const id = document.getElementById('editar-comentario-id').value;
-        const textoNuevo = document.getElementById('editar-comentario-text').value.trim();
+        const textoNuevo = document.getElementById('editar-comentario-texto').value.trim();
         const error = document.getElementById('editar-comentario-error');
 
         error.textContent = '';
@@ -300,11 +302,11 @@ function configurarModalEditarComentario() {
             return;
         }
         btn.disabled = true;
-        const respuesta = await fetch(baseURL + 'comment/' + id, {
+        const respuesta = await fetch(baseURL + '/comment/' + id, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + obtenerToken()
+                'Authorization': 'Bearer ' + localStorage.getItem('token')
             },
             body: JSON.stringify({ text: textoNuevo })
         });
@@ -317,5 +319,24 @@ function configurarModalEditarComentario() {
         }
     });
 }
+function configurarModalBorrarComentario() {
+    const btn = document.getElementById('borrar-comentario-id');
+    if (!btn) return;
 
+    btn.addEventListener('click', async function () {
+        const id = document.getElementById('borrar-confirmar-borrar-comentario').value;
 
+        btn.disabled = true;
+        const respuesta = await fetch(baseURL + '/comment/' + id, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+        });
+        btn.disabled = false;
+        if (respuesta.ok) {
+            document.getElementById('com-' + id).remove();
+            bootstrap.Modal.getInstance(document.getElementById('modal-confirmar-borrar')).hide();
+        } else {
+            alert('Error al borrar el comentario.');
+        }
+    });
+}
