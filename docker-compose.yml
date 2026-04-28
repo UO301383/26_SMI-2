@@ -55,7 +55,7 @@ services:
     volumes:
       - ./volumes/public/videos:/usr/share/nginx/html/videos:ro
       - ./volumes/public/users:/usr/share/nginx/html/users:ro
-      - ./volumes/nginx-servidorweb.conf:/etc/nginx/conf.d/servidorweb.conf:ro
+      - ./volumes/nginx-servidorweb.conf:/etc/nginx/conf.d/default.conf:ro
     environment:
       - NGINX_PORT=80
     networks:
