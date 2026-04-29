@@ -89,7 +89,10 @@ async function cargarVideosUsuario(idUsario) {
                         '<p class="card-title fw-semibold text-dark mb-1" style="font-size:0.9rem;">' + video.title + '</p>' +
                         '<div class="d-flex justify-content-between align-items-center mt-2">' +
                             '<span class="text-muted" style="font-size:0.8rem;">' + new Date(video.createdAt).toLocaleDateString('es-ES') + '</span>' +
-                            '<button class="btn btn-sm btn-outline-danger p-1" style="font-size:0.8rem;" onclick="borrarVideo(' + video.id + ')">Borrar</button>' +
+                            '<div>' +
+                                '<button class="btn btn-sm btn-outline-secondary p-1 me-2" style="font-size:0.8rem;" onclick="editarVideo(' + video.id + ')">Editar</button>' +
+                                '<button class="btn btn-sm btn-outline-danger p-1" style="font-size:0.8rem;" onclick="borrarVideo(' + video.id + ')">Borrar</button>' +
+                            '</div>' +
                         '</div>' +
                     '</div>' +
                 '</div>' +
@@ -115,5 +118,36 @@ async function borrarVideo(id) {
     }
 }
 
+async function editarVideo(id) {
+    const videoActual = await obtenerVideosPorId(id);
+    if (!videoActual || videoActual.error) {
+        alert('No se pudieron cargar los datos del vídeo.');
+        return;
+    }
 
+    const nuevoTitulo = prompt('Edita el título del vídeo:', videoActual.title);
+    if (nuevoTitulo === null) return; 
+
+    const nuevaDesc = prompt('Edita la descripción del vídeo:', videoActual.description);
+    if (nuevaDesc === null) return; 
+
+    const response = await fetch(baseURL + '/video/' + id, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+        },
+        body: JSON.stringify({ 
+            title: nuevoTitulo.trim(), 
+            description: nuevaDesc.trim() 
+        })
+    });
+
+    if (response.ok) {
+        const usuario = obtenerUsuarioEnSesion();
+        await cargarVideosUsuario(usuario.id);
+    } else {
+        alert('No se pudo editar el vídeo. Asegúrate de que eres el propietario.');
+    }
+}
 
