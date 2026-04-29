@@ -68,18 +68,51 @@ async function cargarVideosUsuario(idUsario) {
     const grid = document.getElementById('videos-usuario-grid');
     grid.innerHTML = '<p class="text-center">Cargando videos...</p>';
 
-    const videos = await obtenerVideosPorUsuario(idUsario); //llama a api.js para obtener los videos del usuario
+    const videos = await obtenerVideosPorUsuario(idUsario);
 
     if (videos.length === 0) {
         grid.innerHTML = '<p class="text-center">No has subido ningún video aún.</p>';
         return;
     }
 
-    grid.innerHTML = ''; //limpia el mensaje de carga
+    grid.innerHTML = ''; 
 
     videos.forEach(function(video) {
-        grid.innerHTML += crearTarjeta(video);
+        let thumbnail = video.thumbnail ? baseURL + video.thumbnail : '';
+        grid.innerHTML += 
+            '<div class="col">' +
+                '<div class="card h-100 border-0 shadow-sm">' +
+                    '<a href="player.html?id=' + video.id + '">' +
+                        '<img src="' + thumbnail + '" class="card-img-top" style="aspect-ratio:16/9; object-fit:cover;" alt="Miniatura">' +
+                    '</a>' +
+                    '<div class="card-body px-2 py-2">' +
+                        '<p class="card-title fw-semibold text-dark mb-1" style="font-size:0.9rem;">' + video.title + '</p>' +
+                        '<div class="d-flex justify-content-between align-items-center mt-2">' +
+                            '<span class="text-muted" style="font-size:0.8rem;">' + new Date(video.createdAt).toLocaleDateString('es-ES') + '</span>' +
+                            '<button class="btn btn-sm btn-outline-danger p-1" style="font-size:0.8rem;" onclick="borrarVideo(' + video.id + ')">Borrar</button>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
     });
+}
+
+async function borrarVideo(id) {
+    if (!confirm('¿Estás seguro de que quieres borrar este video? Esta acción no se puede deshacer.')) return;
+
+    const response = await fetch(baseURL + '/video/' + id, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+        }
+    });
+
+    if (response.ok) {
+        const usuario = obtenerUsuarioEnSesion();
+        await cargarVideosUsuario(usuario.id);
+    } else {
+        alert('No se pudo borrar el video. Asegúrate de que eres el propietario.');
+    }
 }
 
 
