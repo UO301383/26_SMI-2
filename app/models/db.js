@@ -11,12 +11,7 @@ const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
     dialect: dbConfig.dialect,
     operatorAliases: false,
     logging: false,
-    pool: {
-        max: dbConfig.max,
-        min: dbConfig.min,
-        idle: dbConfig.idle,
-        acquire: dbConfig.acquire
-    }
+    pool: dbConfig.pool
 });
 
 const db = {};

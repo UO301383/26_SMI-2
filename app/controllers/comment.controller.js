@@ -34,7 +34,7 @@ module.exports.create = async (req, res, next) => {
                 attributes: ['username', 'icon']
             }]
         }); 
-        res.status(201).json(comment);
+        res.status(201).json(commentConAutor);
     } catch (error) {
         res.status(500).json({ error: "Error al crear el comentario." });
     }
