@@ -185,7 +185,7 @@ async function cargarComentarios(videoId) {
 
 function crearComentarioHtml(comment) {
     //backend devuelve datos del autor en comment.user gracias al join con User en el controlador)
-    const autor = comment.User || comment.user || {};
+    const autor = comment.user || {};
     const username = autor.username || 'Usuario desconocido';
 
     //avatar con foto de perfil
