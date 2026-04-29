@@ -79,8 +79,8 @@ exports.encodeDash = (inputVideoPath, outputDashContentPath) => {
             `-b:v:2 1600k -maxrate:v:2 1712k -bufsize:v:2 2400k`,
             `-c:a aac -b:a:0 128k`,
             `-use_timeline 1 -use_template 1`,
-            `-init_seg_name "init-$RepresentationID$.m4s"`,
-            `-media_seg_name "chunk-$RepresentationID$-$Number%05d$.m4s"`,
+            `-init_seg_name 'init-$RepresentationID$.m4s'`,
+            `-media_seg_name 'chunk-$RepresentationID$-$Number%05d$.m4s'`,
             `-adaptation_sets "id=0,streams=0 id=1,streams=1 id=2,streams=2 id=3,streams=3"`,
             `-f dash ${outputManifest}`
         ].join(" ");
