@@ -47,13 +47,12 @@ async function cargarVideo(videoId) {
     document.getElementById('video-description').textContent = video.description || 'Sin descripción disponible.';
     document.getElementById('video-meta').textContent = construirMeta(video);
 
+    resetSelectorCalidadDash();
     reproducirMp4();
 
     const btnDash = document.getElementById('btn-modo-dash');
-    if (!video.dash) {
-        btnDash.disabled = true;
-        btnDash.classList.add('disabled');
-    }
+    btnDash.disabled = !video.dash;
+    btnDash.classList.toggle('disabled', !video.dash);
 }
 
 function construirMeta(video) {
@@ -78,6 +77,8 @@ function configurarControlesReproductor() {
     document.getElementById('btn-modo-dash').addEventListener('click', function () {
         reproducirDash();
     });
+
+    document.getElementById('dash-quality-select').addEventListener('change', cambiarCalidadDash);
 }
 
 function actualizarBotonesModo(isDash) {
@@ -113,6 +114,7 @@ function reproducirMp4() {
 
     const videoElement = document.getElementById('video-player');
     destruirDashSiExiste();
+    resetSelectorCalidadDash();
 
     videoElement.src = staticURL + currentVideo.path;
     videoElement.load();
@@ -127,6 +129,7 @@ function reproducirDash() {
 
     const videoElement = document.getElementById('video-player');
     destruirDashSiExiste();
+    prepararSelectorCalidadDash();
     ocultarError();
 
     dashPlayer = dashjs.MediaPlayer().create();
@@ -144,7 +147,10 @@ function reproducirDash() {
         manejarFalloDash('No se pudo reproducir el contenido DASH. Se vuelve al modo MP4.');
     });
 
+    dashPlayer.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, cargarCalidadesDash);
+
     dashPlayer.initialize(videoElement, staticURL + currentVideo.dash, true);
+    setTimeout(cargarCalidadesDash, 1000);
 
     dashTimeoutId = setTimeout(function () {
         const noHaArrancado = videoElement.readyState < 2 || videoElement.currentTime === 0;
@@ -160,6 +166,101 @@ function manejarFalloDash(message) {
     destruirDashSiExiste();
     mostrarError(message);
     reproducirMp4();
+}
+
+function prepararSelectorCalidadDash() {
+    const wrapper = document.getElementById('dash-quality-wrapper');
+    const select = document.getElementById('dash-quality-select');
+
+    wrapper.classList.remove('d-none');
+    select.disabled = true;
+    select.innerHTML = '<option value="auto">Auto</option>';
+    select.value = 'auto';
+}
+
+function resetSelectorCalidadDash() {
+    const wrapper = document.getElementById('dash-quality-wrapper');
+    const select = document.getElementById('dash-quality-select');
+
+    wrapper.classList.add('d-none');
+    select.disabled = true;
+    select.innerHTML = '<option value="auto">Auto</option>';
+    select.value = 'auto';
+}
+
+function cargarCalidadesDash() {
+    if (!dashPlayer) {
+        return;
+    }
+
+    const wrapper = document.getElementById('dash-quality-wrapper');
+    const select = document.getElementById('dash-quality-select');
+    const calidades = dashPlayer.getBitrateInfoListFor('video') || [];
+
+    if (calidades.length === 0) {
+        return;
+    }
+
+    const valorActual = select.value || 'auto';
+    select.innerHTML = '<option value="auto">Auto</option>';
+
+    calidades
+        .slice()
+        .sort(function (a, b) {
+            return (a.height || 0) - (b.height || 0);
+        })
+        .forEach(function (calidad) {
+            const option = document.createElement('option');
+            const altura = calidad.height ? calidad.height + 'p' : 'Calidad ' + (calidad.qualityIndex + 1);
+            const bitrate = calidad.bitrate ? ' - ' + Math.round(calidad.bitrate / 1000) + ' kbps' : '';
+
+            option.value = String(calidad.qualityIndex);
+            option.textContent = altura + bitrate;
+            select.appendChild(option);
+        });
+
+    wrapper.classList.remove('d-none');
+    select.disabled = false;
+
+    if (Array.from(select.options).some(function (option) { return option.value === valorActual; })) {
+        select.value = valorActual;
+    }
+}
+
+function cambiarCalidadDash(event) {
+    if (!dashPlayer) {
+        return;
+    }
+
+    const valor = event.target.value;
+
+    try {
+        if (valor === 'auto') {
+            actualizarModoAutoDash(true);
+            return;
+        }
+
+        actualizarModoAutoDash(false);
+        dashPlayer.setQualityFor('video', Number(valor), true);
+    } catch (error) {
+        mostrarError('No se pudo cambiar la calidad DASH.');
+    }
+}
+
+function actualizarModoAutoDash(activar) {
+    dashPlayer.updateSettings({
+        streaming: {
+            abr: {
+                autoSwitchBitrate: {
+                    video: activar
+                }
+            }
+        }
+    });
+
+    if (typeof dashPlayer.setAutoSwitchQualityFor === 'function') {
+        dashPlayer.setAutoSwitchQualityFor('video', activar);
+    }
 }
 
 async function cargarComentarios(videoId) {

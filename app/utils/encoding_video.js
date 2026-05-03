@@ -61,9 +61,9 @@ exports.encodeDash = (inputVideoPath, outputDashContentPath) => {
 
         const filterComplex = [
             "[0:v]setsar=1,split=3[v1][v2][v3];",
-            "[v1]scale=426:240:force_original_aspect_ratio=decrease,pad=426:240:(ow-iw)/2:(oh-ih)/2,setsar=1[v240];",
-            "[v2]scale=640:360:force_original_aspect_ratio=decrease,pad=640:360:(ow-iw)/2:(oh-ih)/2,setsar=1[v360];",
-            "[v3]scale=854:480:force_original_aspect_ratio=decrease,pad=854:480:(ow-iw)/2:(oh-ih)/2,setsar=1[v480]"
+            "[v1]scale=426:240:force_original_aspect_ratio=decrease,pad=426:240:(ow-iw)/2:(oh-ih)/2,setdar=16/9[v240];",
+            "[v2]scale=640:360:force_original_aspect_ratio=decrease,pad=640:360:(ow-iw)/2:(oh-ih)/2,setdar=16/9[v360];",
+            "[v3]scale=854:480:force_original_aspect_ratio=decrease,pad=854:480:(ow-iw)/2:(oh-ih)/2,setdar=16/9[v480]"
         ].join(" ");
 
         const outputManifest = `"${outputDashContentPath}/manifest.mpd"`;
@@ -81,7 +81,7 @@ exports.encodeDash = (inputVideoPath, outputDashContentPath) => {
             `-use_timeline 1 -use_template 1`,
             `-init_seg_name 'init-$RepresentationID$.m4s'`,
             `-media_seg_name 'chunk-$RepresentationID$-$Number%05d$.m4s'`,
-            `-adaptation_sets "id=0,streams=0 id=1,streams=1 id=2,streams=2 id=3,streams=3"`,
+            `-adaptation_sets "id=0,streams=0,1,2 id=1,streams=3"`,
             `-f dash ${outputManifest}`
         ].join(" ");
 
