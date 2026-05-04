@@ -53,6 +53,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                 if(resAvatar.icon){
                     usuario.icon = resAvatar.icon;
                     document.getElementById('avatar-usuario').src = staticURL + resAvatar.icon + '?t=' + Date.now();
+                } else {
+                    error.textContent=resAvatar.error || 'Error al actualizar la foto de perfil.';
+                    btnConfirmarEditar.disabled=false;
+                    return;
                 }
             }
 
@@ -151,4 +155,3 @@ async function editarVideo(id) {
         alert('No se pudo editar el vídeo. Asegúrate de que eres el propietario.');
     }
 }
-

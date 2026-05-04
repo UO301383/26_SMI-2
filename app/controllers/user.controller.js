@@ -61,13 +61,21 @@ module.exports.uploadIcon = async (req, res, next) => {
         if (!req.file) {
             return res.status(400).json({ error: "No se ha subido ningún archivo." });
         }
-        const filename = 'user-' + user.id + '.jpg';
+        if (!req.file.mimetype || !req.file.mimetype.startsWith('image/')) {
+            fs.unlink(req.file.path, () => {});
+            return res.status(400).json({ error: "El archivo subido no es una imagen." });
+        }
+
+        const extension = path.extname(req.file.originalname).toLowerCase() || '.jpg';
+        const filename = 'user-' + user.id + extension;
         const rutaDestino = path.join(storageConfig.usersDir, filename);
         fs.mkdirSync(storageConfig.usersDir, { recursive: true });
         fs.copyFileSync(req.file.path, rutaDestino);
         fs.unlinkSync(req.file.path);
         await user.update({ icon: '/users/' + filename });
-        res.status(200).json({ icon: '/users/' + filename });
+
+        const { password, ...userWithoutPassword } = user.dataValues;
+        res.status(200).json(userWithoutPassword);
     } catch (error) {
         console.error('uploadIcon error:', error);
         res.status(500).json({ error: "Error al subir el icono del usuario." });
