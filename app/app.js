@@ -40,5 +40,6 @@ require("./routes/video.routes.js")(app);
 require("./routes/user.routes.js")(app);
 require("./routes/auth.routes.js")(app);
 require("./routes/comment.routes.js")(app);
+require("./routes/chat.routes.js")(app);
 
 module.exports = app;

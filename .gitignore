@@ -3,3 +3,4 @@ volumes/*
 !volumes/public/
 !volumes/public/**
 !volumes/nginx-servidorweb.conf
+!volumes/nginx-frontend.conf

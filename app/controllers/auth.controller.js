@@ -11,7 +11,41 @@ const SECRET_KEY = authConfig.secret;
 
 const OPENFIRE_HOST = process.env.OPENFIRE_HOST || 'localhost';
 const OPENFIRE_URL = `http://${OPENFIRE_HOST}:9090/plugins/restapi/v1`;
-const OPENFIRE_SECRET = 'secretkey';
+const OPENFIRE_SECRET = process.env.OPENFIRE_SECRET || 'secretkey';
+
+const openfireHeaders = {
+    'Authorization': OPENFIRE_SECRET,
+    'Content-Type': 'application/json'
+};
+
+async function ensureOpenfireUser({ username, password, name, email }) {
+    const userData = {
+        username,
+        password,
+        name: name || username,
+        email
+    };
+
+    try {
+        await axios.post(`${OPENFIRE_URL}/users`, userData, { headers: openfireHeaders });
+        return true;
+    } catch (error) {
+        const status = error.response && error.response.status;
+
+        if (status === 409 || status === 400) {
+            try {
+                await axios.put(`${OPENFIRE_URL}/users/${encodeURIComponent(username)}`, userData, { headers: openfireHeaders });
+                return true;
+            } catch (updateError) {
+                console.warn("No se pudo actualizar el usuario en Openfire:", updateError.message);
+                return false;
+            }
+        }
+
+        console.warn("No se pudo crear el usuario en Openfire:", error.message);
+        return false;
+    }
+}
 
 
 // Registrar un nuevo usuario (POST /signup)
@@ -42,22 +76,12 @@ module.exports.signup = async (req, res, next) => {
         });
 
         // 5. Creamos el usuario en Openfire para el chat
-        try {
-            await axios.post(`${OPENFIRE_URL}/users`, {
-                username: req.body.username,
-                password: req.body.password,
-                name:     req.body.name,
-                email:    req.body.email
-            }, {
-                headers: {
-                    'Authorization': OPENFIRE_SECRET,
-                    'Content-Type': 'application/json'
-                }
-            });
-        } catch (openfireError) {
-            // Si falla Openfire no bloqueamos el registro, solo lo avisamos
-            console.warn("Usuario creado en MySQL pero no en Openfire:", openfireError.message);
-        }
+        await ensureOpenfireUser({
+            username: req.body.username,
+            password: req.body.password,
+            name:     req.body.name,
+            email:    req.body.email
+        });
 
         // 6. Respondemos sin devolver la contraseña
         const { password, ...userWithoutPassword } = newUser.dataValues;
@@ -93,12 +117,20 @@ module.exports.login = async (req, res, next) => {
             { expiresIn: '24h' }
         );
 
+        const xmppReady = await ensureOpenfireUser({
+            username: user.username,
+            password: req.body.password,
+            name:     user.name,
+            email:    user.email
+        });
+
         // 4. Respondemos con el token y los datos del usuario (sin la contraseña)
         const { password, ...userWithoutPassword } = user.dataValues;
         res.status(200).json({
             message: "Login correcto.",
             user: userWithoutPassword,
-            token: token
+            token: token,
+            xmppReady
         });
 
     } catch (error) {

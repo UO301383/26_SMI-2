@@ -1,0 +1,6 @@
+node_modules
+.git
+volumes
+storage/uploads
+storage/videos
+npm-debug.log
