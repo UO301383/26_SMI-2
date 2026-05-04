@@ -63,7 +63,9 @@ module.exports.uploadIcon = async (req, res, next) => {
         }
         const filename = 'user-' + user.id + '.jpg';
         const rutaDestino = path.join(storageConfig.usersDir, filename);
-        fs.renameSync(req.file.path, rutaDestino);
+        fs.mkdirSync(storageConfig.usersDir, { recursive: true });
+        fs.copyFileSync(req.file.path, rutaDestino);
+        fs.unlinkSync(req.file.path);
         await user.update({ icon: '/users/' + filename });
         res.status(200).json({ icon: '/users/' + filename });
     } catch (error) {
