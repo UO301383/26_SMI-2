@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     //Pone el avatar del usuario si tiene uno, sino pone el avatar por defecto
     if (usuario.icon) {
-        document.getElementById('avatar-usuario').src = baseURL + usuario.icon + '?t=' + Date.now();
+        document.getElementById('avatar-usuario').src = staticURL + usuario.icon + '?t=' + Date.now();
     }
     // carga los videos del usuario
     await cargarVideosUsuario(usuario.id);
@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const resAvatar=await subirArchivoAvatar(archivoAvatar);
                 if(resAvatar.icon){
                     usuario.icon = resAvatar.icon;
-                    document.getElementById('avatar-usuario').src = baseURL + resAvatar.icon + '?t=' + Date.now();
+                    document.getElementById('avatar-usuario').src = staticURL + resAvatar.icon + '?t=' + Date.now();
                 }
             }
 
@@ -79,7 +79,7 @@ async function cargarVideosUsuario(idUsario) {
     grid.innerHTML = ''; 
 
     videos.forEach(function(video) {
-        let thumbnail = video.thumbnail ? baseURL + video.thumbnail : '';
+        let thumbnail = video.thumbnail ? staticURL + video.thumbnail : '';
         grid.innerHTML += 
             '<div class="col">' +
                 '<div class="card h-100 border-0 shadow-sm">' +

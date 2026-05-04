@@ -56,7 +56,7 @@ function renderPlaylist(playlistVideos) {
         item.className = 'card p-3 text-start border-0 text-decoration-none';
         item.innerHTML = `
             <div class="d-flex align-items-start gap-3">
-                <img src="${video.thumbnail ? baseURL + video.thumbnail : ''}" alt="" class="rounded" style="width:96px;height:54px;object-fit:cover;background:#e9ecef;">
+                <img src="${video.thumbnail ? staticURL + video.thumbnail : ''}" alt="" class="rounded" style="width:96px;height:54px;object-fit:cover;background:#e9ecef;">
                 <div>
                     <p class="fw-semibold mb-1 text-dark">${video.title || 'Sin título'}</p>
                     <p class="text-muted mb-0 small">Usuario #${video.userId || '-'}</p>
