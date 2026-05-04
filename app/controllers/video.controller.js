@@ -7,6 +7,11 @@ const storageConfig = require('../config/storage.config.js');
 
 const Video = db.video;
 const { Op } = db.Sequelize;
+const completeVideoWhere = {
+    path: {
+        [Op.ne]: ''
+    }
+};
 
 // Importamos las funciones de FFmpeg (asegúrate de que la ruta coincida con donde lo guardaste)
 const encoder = require('../utils/encoding_video');
@@ -28,6 +33,7 @@ module.exports.getAll = async (req, res, next) => {
         if (searchTerm) {
             const videos = await Video.findAll({
                 where: {
+                    ...completeVideoWhere,
                     title: {
                         [Op.like]: `%${searchTerm}%`
                     }
@@ -37,7 +43,7 @@ module.exports.getAll = async (req, res, next) => {
             return res.status(200).json(videos);
         }
 
-        const videos = await Video.findAll();
+        const videos = await Video.findAll({ where: completeVideoWhere });
         return res.status(200).json(videos);
     }catch(error){
         console.error("Error al consultar los vídeos:", error);
@@ -50,7 +56,7 @@ module.exports.create = async (req, res, next) => {
     // Preparamos los datos del vídeo
     const videoData = { 
         title: req.body.title, 
-        description: req.body.description,
+        description: req.body.description || '',
         userId: req.user.id, // Asignado automáticamente por el backend 
         thumbnail: '', // Estos campos se rellenarán más adelante al subir el archivo
         path: '', 
@@ -64,8 +70,10 @@ module.exports.create = async (req, res, next) => {
 // Consultar un vídeo por su id (GET /video/:id) 
 module.exports.get = async (req, res, next) => {
     const video = await Video.findByPk(req.params.id);
-    if (video) {
+    if (video && video.path) {
         res.status(200).json(video);
+    } else if (video) {
+        res.status(409).json({ error: 'El vídeo todavía no tiene archivo procesado.' });
     } else {
         res.status(404).end();
     }    
@@ -74,8 +82,8 @@ module.exports.get = async (req, res, next) => {
 //Consultar lista de reproducción (GET /video/plalist)
 module.exports.getPlaylist = async (req, res, next) => {
     try{
-       const videos = await Video.findAll({
-            where: { path: '' },
+        const videos = await Video.findAll({
+            where: completeVideoWhere,
             order: [['createdAt', 'DESC']]
         });
         res.status(200).json(videos);
@@ -86,7 +94,10 @@ module.exports.getPlaylist = async (req, res, next) => {
 // Consultar los vídeos de un usuario concreto (GET /video/user/:userId)
 module.exports.getByUser = async (req, res, next) => {
     const videos = await Video.findAll({
-        where: { userId: req.params.userId }
+        where: {
+            ...completeVideoWhere,
+            userId: req.params.userId
+        }
     });
     res.status(200).json(videos);
 };

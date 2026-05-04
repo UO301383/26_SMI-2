@@ -1,6 +1,8 @@
 let currentVideo = null;
 let dashPlayer = null;
 let dashTimeoutId = null;
+let dashManifestQualities = [];
+let selectedDashQuality = 'auto';
 
 document.addEventListener('DOMContentLoaded', async function () {
     botonesAuth();
@@ -37,7 +39,15 @@ async function cargarVideo(videoId) {
 
     const video = await obtenerVideosPorId(videoId);
     if (!video || video.error || !video.id) {
-        mostrarError('No se pudo cargar el vídeo solicitado.');
+        mostrarError((video && video.error) || 'No se pudo cargar el vídeo solicitado. Puede que el vídeo no exista o todavía se esté procesando.');
+        return;
+    }
+
+    if (!video.path && !video.dash) {
+        mostrarError('Este vídeo todavía se está procesando o quedó incompleto. Vuelve al catálogo y actualiza la página.');
+        document.getElementById('video-title').textContent = video.title || 'Vídeo no disponible';
+        document.getElementById('video-description').textContent = video.description || '';
+        document.getElementById('video-meta').textContent = construirMeta(video);
         return;
     }
 
@@ -48,7 +58,11 @@ async function cargarVideo(videoId) {
     document.getElementById('video-meta').textContent = construirMeta(video);
 
     resetSelectorCalidadDash();
-    reproducirMp4();
+    if (video.path) {
+        reproducirMp4();
+    } else {
+        reproducirDash();
+    }
 
     const btnDash = document.getElementById('btn-modo-dash');
     btnDash.disabled = !video.dash;
@@ -78,7 +92,7 @@ function configurarControlesReproductor() {
         reproducirDash();
     });
 
-    document.getElementById('dash-quality-select').addEventListener('change', cambiarCalidadDash);
+    document.getElementById('dash-quality-menu').addEventListener('click', cambiarCalidadDash);
 }
 
 function actualizarBotonesModo(isDash) {
@@ -104,6 +118,8 @@ function destruirDashSiExiste() {
         dashPlayer.reset();
         dashPlayer = null;
     }
+
+    dashManifestQualities = [];
 }
 
 function reproducirMp4() {
@@ -128,6 +144,7 @@ function reproducirDash() {
     }
 
     const videoElement = document.getElementById('video-player');
+    const manifestUrl = staticURL + currentVideo.dash;
     destruirDashSiExiste();
     prepararSelectorCalidadDash();
     ocultarError();
@@ -147,10 +164,15 @@ function reproducirDash() {
         manejarFalloDash('No se pudo reproducir el contenido DASH. Se vuelve al modo MP4.');
     });
 
-    dashPlayer.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, cargarCalidadesDash);
+    registrarEventoDash(dashjs.MediaPlayer.events.MANIFEST_LOADED, cargarCalidadesDash);
+    registrarEventoDash(dashjs.MediaPlayer.events.STREAM_INITIALIZED, cargarCalidadesDash);
+    registrarEventoDash(dashjs.MediaPlayer.events.PLAYBACK_METADATA_LOADED, cargarCalidadesDash);
 
-    dashPlayer.initialize(videoElement, staticURL + currentVideo.dash, true);
+    cargarCalidadesDesdeManifest(manifestUrl);
+
+    dashPlayer.initialize(videoElement, manifestUrl, true);
     setTimeout(cargarCalidadesDash, 1000);
+    setTimeout(cargarCalidadesDash, 2500);
 
     dashTimeoutId = setTimeout(function () {
         const noHaArrancado = videoElement.readyState < 2 || videoElement.currentTime === 0;
@@ -168,24 +190,36 @@ function manejarFalloDash(message) {
     reproducirMp4();
 }
 
+function registrarEventoDash(eventName, handler) {
+    if (eventName) {
+        dashPlayer.on(eventName, handler);
+    }
+}
+
 function prepararSelectorCalidadDash() {
     const wrapper = document.getElementById('dash-quality-wrapper');
-    const select = document.getElementById('dash-quality-select');
+    const button = document.getElementById('dash-quality-button');
+    const menu = document.getElementById('dash-quality-menu');
 
     wrapper.classList.remove('d-none');
-    select.disabled = true;
-    select.innerHTML = '<option value="auto">Auto</option>';
-    select.value = 'auto';
+    button.disabled = false;
+    button.textContent = 'Auto';
+    selectedDashQuality = 'auto';
+    menu.innerHTML =
+        '<li><button class="dropdown-item active" type="button" data-quality="auto">Auto</button></li>' +
+        '<li><span class="dropdown-item disabled">Cargando calidades...</span></li>';
 }
 
 function resetSelectorCalidadDash() {
     const wrapper = document.getElementById('dash-quality-wrapper');
-    const select = document.getElementById('dash-quality-select');
+    const button = document.getElementById('dash-quality-button');
+    const menu = document.getElementById('dash-quality-menu');
 
     wrapper.classList.add('d-none');
-    select.disabled = true;
-    select.innerHTML = '<option value="auto">Auto</option>';
-    select.value = 'auto';
+    button.disabled = true;
+    button.textContent = 'Auto';
+    selectedDashQuality = 'auto';
+    menu.innerHTML = '<li><button class="dropdown-item active" type="button" data-quality="auto">Auto</button></li>';
 }
 
 function cargarCalidadesDash() {
@@ -194,15 +228,16 @@ function cargarCalidadesDash() {
     }
 
     const wrapper = document.getElementById('dash-quality-wrapper');
-    const select = document.getElementById('dash-quality-select');
-    const calidades = dashPlayer.getBitrateInfoListFor('video') || [];
+    const button = document.getElementById('dash-quality-button');
+    const menu = document.getElementById('dash-quality-menu');
+    const calidades = obtenerCalidadesDash();
 
     if (calidades.length === 0) {
         return;
     }
 
-    const valorActual = select.value || 'auto';
-    select.innerHTML = '<option value="auto">Auto</option>';
+    menu.innerHTML = '';
+    menu.appendChild(crearOpcionCalidadDash('auto', 'Auto', selectedDashQuality === 'auto'));
 
     calidades
         .slice()
@@ -210,41 +245,138 @@ function cargarCalidadesDash() {
             return (a.height || 0) - (b.height || 0);
         })
         .forEach(function (calidad) {
-            const option = document.createElement('option');
             const altura = calidad.height ? calidad.height + 'p' : 'Calidad ' + (calidad.qualityIndex + 1);
             const bitrate = calidad.bitrate ? ' - ' + Math.round(calidad.bitrate / 1000) + ' kbps' : '';
+            const value = String(calidad.qualityIndex);
 
-            option.value = String(calidad.qualityIndex);
-            option.textContent = altura + bitrate;
-            select.appendChild(option);
+            menu.appendChild(crearOpcionCalidadDash(value, altura + bitrate, selectedDashQuality === value));
         });
 
     wrapper.classList.remove('d-none');
-    select.disabled = false;
+    button.disabled = false;
 
-    if (Array.from(select.options).some(function (option) { return option.value === valorActual; })) {
-        select.value = valorActual;
+    const opcionActiva = menu.querySelector('[data-quality="' + selectedDashQuality + '"]');
+    if (!opcionActiva) {
+        selectedDashQuality = 'auto';
+        button.textContent = 'Auto';
+        marcarOpcionCalidadActiva('auto');
+    }
+}
+
+function obtenerCalidadesDash() {
+    let calidades = [];
+
+    if (typeof dashPlayer.getBitrateInfoListFor === 'function') {
+        calidades = dashPlayer.getBitrateInfoListFor('video') || [];
+    }
+
+    if (calidades.length === 0 && typeof dashPlayer.getRepresentationsByType === 'function') {
+        calidades = (dashPlayer.getRepresentationsByType('video') || []).map(function (representation, index) {
+            return {
+                qualityIndex: typeof representation.index === 'number' ? representation.index : index,
+                height: representation.height,
+                bitrate: representation.bandwidth || representation.bitrate
+            };
+        });
+    }
+
+    if (calidades.length === 0) {
+        calidades = dashManifestQualities;
+    }
+
+    return calidades
+        .filter(function (calidad) {
+            return typeof calidad.qualityIndex === 'number';
+        })
+        .filter(function (calidad, index, lista) {
+            return lista.findIndex(function (otra) {
+                return otra.qualityIndex === calidad.qualityIndex;
+            }) === index;
+        });
+}
+
+async function cargarCalidadesDesdeManifest(manifestUrl) {
+    try {
+        const response = await fetch(manifestUrl, { cache: 'no-store' });
+        if (!response.ok) {
+            return;
+        }
+
+        const manifestText = await response.text();
+        const manifestXml = new DOMParser().parseFromString(manifestText, 'application/xml');
+        const adaptationSets = Array.from(manifestXml.getElementsByTagNameNS('*', 'AdaptationSet'));
+        const videoAdaptation = adaptationSets.find(function (adaptationSet) {
+            const contentType = adaptationSet.getAttribute('contentType');
+            const mimeType = adaptationSet.getAttribute('mimeType');
+            return contentType === 'video' || (mimeType && mimeType.startsWith('video/'));
+        });
+
+        if (!videoAdaptation) {
+            return;
+        }
+
+        dashManifestQualities = Array.from(videoAdaptation.getElementsByTagNameNS('*', 'Representation')).map(function (representation, index) {
+            return {
+                qualityIndex: index,
+                height: Number(representation.getAttribute('height')) || 0,
+                bitrate: Number(representation.getAttribute('bandwidth')) || 0
+            };
+        });
+
+        cargarCalidadesDash();
+    } catch (error) {
+        // Si falla el parseo manual, dash.js seguirá intentando obtener las calidades.
     }
 }
 
 function cambiarCalidadDash(event) {
+    const option = event.target.closest('[data-quality]');
+    if (!option) {
+        return;
+    }
+
     if (!dashPlayer) {
         return;
     }
 
-    const valor = event.target.value;
+    const valor = option.dataset.quality;
 
     try {
         if (valor === 'auto') {
             actualizarModoAutoDash(true);
+            selectedDashQuality = 'auto';
+            document.getElementById('dash-quality-button').textContent = 'Auto';
+            marcarOpcionCalidadActiva('auto');
             return;
         }
 
         actualizarModoAutoDash(false);
         dashPlayer.setQualityFor('video', Number(valor), true);
+        selectedDashQuality = valor;
+        document.getElementById('dash-quality-button').textContent = option.textContent.trim();
+        marcarOpcionCalidadActiva(valor);
     } catch (error) {
         mostrarError('No se pudo cambiar la calidad DASH.');
     }
+}
+
+function crearOpcionCalidadDash(value, label, active) {
+    const li = document.createElement('li');
+    const button = document.createElement('button');
+
+    button.className = 'dropdown-item' + (active ? ' active' : '');
+    button.type = 'button';
+    button.dataset.quality = value;
+    button.textContent = label;
+
+    li.appendChild(button);
+    return li;
+}
+
+function marcarOpcionCalidadActiva(value) {
+    document.querySelectorAll('#dash-quality-menu [data-quality]').forEach(function (option) {
+        option.classList.toggle('active', option.dataset.quality === value);
+    });
 }
 
 function actualizarModoAutoDash(activar) {

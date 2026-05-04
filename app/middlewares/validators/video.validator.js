@@ -15,10 +15,7 @@ exports.validateVideo = [
   body('description') // Cambiamos author por description
     .trim()
     .escape()
-    .not()
-    .isEmpty()
-    .withMessage('Video description can not be empty!')
-    .bail()
+    .optional({ checkFalsy: true })
     .isLength({min: 3})
     .withMessage('Minimum 3 characters required for description!')
     .bail(),

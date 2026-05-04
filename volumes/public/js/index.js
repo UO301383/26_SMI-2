@@ -1,4 +1,4 @@
-0// espera a que el HTML esté completamente cargado antes de ejecutar el código
+// espera a que el HTML esté completamente cargado antes de ejecutar el código
 document.addEventListener('DOMContentLoaded', async function () {
     botonesAuth();
     await cargarVideos();
@@ -34,15 +34,31 @@ document.addEventListener('DOMContentLoaded', async function () {
             }
             btnConfirmar.disabled = true;
             progreso.style.display = 'block';
-            const videoCreado = await crearVideo(titulo, descripcion);
-
-            if (!videoCreado || !videoCreado.id) {
-                error.textContent = videoCreado.error || 'Error al crear el vídeo.';
+            let videoCreado;
+            try {
+                videoCreado = await crearVideo(titulo, descripcion);
+            } catch (e) {
+                error.textContent = 'No se pudo conectar con el backend.';
                 btnConfirmar.disabled = false;
                 progreso.style.display = 'none';
                 return;
             }
-            const resultado = await subirArchivoVideo(videoCreado.id, archivo);
+
+            if (!videoCreado || !videoCreado.id) {
+                error.textContent = obtenerMensajeError(videoCreado, 'Error al crear el vídeo.');
+                btnConfirmar.disabled = false;
+                progreso.style.display = 'none';
+                return;
+            }
+            let resultado;
+            try {
+                resultado = await subirArchivoVideo(videoCreado.id, archivo);
+            } catch (e) {
+                error.textContent = 'No se pudo conectar con el backend al subir el archivo.';
+                btnConfirmar.disabled = false;
+                progreso.style.display = 'none';
+                return;
+            }
 
             btnConfirmar.disabled = false;
             progreso.style.display = 'none';
@@ -53,7 +69,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                 document.getElementById('upload-archivo').value = '';
                 await cargarVideos();
             } else {
-                error.textContent = resultado.error || 'Error al subir el archivo.';
+                error.textContent = obtenerMensajeError(resultado, 'Error al subir el archivo.');
             }
         });
     }
@@ -66,6 +82,29 @@ document.addEventListener('DOMContentLoaded', async function () {
         });
     }
 });
+
+function obtenerMensajeError(response, fallback) {
+    if (!response) {
+        return fallback;
+    }
+
+    if (response.error) {
+        return response.error;
+    }
+
+    if (response.message) {
+        return response.message;
+    }
+
+    if (Array.isArray(response.errors) && response.errors.length > 0) {
+        return response.errors.map(function (err) {
+            return err.msg;
+        }).join(' ');
+    }
+
+    return fallback;
+}
+
 async function cargarVideos(busqueda) {
     const grid = document.getElementById('video-grid');
     grid.innerHTML = '<p class="text-muted">Cargando videos...</p>';

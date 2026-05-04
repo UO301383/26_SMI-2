@@ -6,6 +6,22 @@
   <title>Reproductor - 26-SMI-2</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .player-frame {
+      background: #111;
+    }
+
+    .dash-quality-overlay {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      z-index: 5;
+    }
+
+    .dash-quality-overlay .dropdown-menu {
+      min-width: 11rem;
+    }
+  </style>
 </head>
 <body>
   <nav class="navbar navbar-light bg-white border-bottom px-3 sticky-top">
@@ -18,18 +34,24 @@
 
     <div class="row g-4">
       <section class="col-lg-8">
-        <div class="ratio ratio-16x9 bg-dark rounded overflow-hidden mb-3">
-          <video id="video-player" controls playsinline class="w-100 h-100"></video>
+        <div class="player-frame position-relative rounded overflow-hidden mb-3">
+          <div class="ratio ratio-16x9">
+            <video id="video-player" controls playsinline class="w-100 h-100"></video>
+          </div>
+
+          <div id="dash-quality-wrapper" class="dash-quality-overlay dropdown d-none">
+            <button id="dash-quality-button" class="btn btn-light btn-sm dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" disabled>
+              Auto
+            </button>
+            <ul id="dash-quality-menu" class="dropdown-menu dropdown-menu-end">
+              <li><button class="dropdown-item active" type="button" data-quality="auto">Auto</button></li>
+            </ul>
+          </div>
         </div>
 
         <div class="d-flex flex-wrap gap-2 mb-3">
           <button id="btn-modo-mp4" class="btn btn-danger btn-sm">Modo MP4</button>
           <button id="btn-modo-dash" class="btn btn-outline-danger btn-sm">Modo DASH</button>
-          <div id="dash-quality-wrapper" class="d-none">
-            <select id="dash-quality-select" class="form-select form-select-sm" aria-label="Calidad DASH" disabled>
-              <option value="auto">Auto</option>
-            </select>
-          </div>
         </div>
 
         <h1 id="video-title" class="h3 fw-bold mb-2">Cargando vídeo...</h1>
@@ -107,6 +129,6 @@
   <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
   <script src="js/api.js"></script>
   <script src="js/auth.js"></script>
-  <script src="js/player.js"></script>
+  <script src="js/player.js?v=dash-quality-selector"></script>
 </body>
 </html>
