@@ -27,7 +27,7 @@ function crearElementoMensaje(message, currentUserId) {
     item.dataset.messageId = message.id;
 
     const bubble = document.createElement('div');
-    bubble.className = `rounded-3 p-3 ${isOwn ? 'bg-danger text-white' : 'bg-white border'}`;
+    bubble.className = `chat-bubble ${isOwn ? 'chat-bubble-own' : 'chat-bubble-other'}`;
 
     const header = document.createElement('div');
     header.className = `small mb-1 ${isOwn ? 'text-white-50' : 'text-muted'}`;

@@ -351,13 +351,47 @@ function cambiarCalidadDash(event) {
         }
 
         actualizarModoAutoDash(false);
-        dashPlayer.setQualityFor('video', Number(valor), true);
+        cambiarCalidadManualDash(Number(valor));
         selectedDashQuality = valor;
         document.getElementById('dash-quality-button').textContent = option.textContent.trim();
         marcarOpcionCalidadActiva(valor);
     } catch (error) {
         mostrarError('No se pudo cambiar la calidad DASH.');
     }
+}
+
+function cambiarCalidadManualDash(qualityIndex) {
+    if (typeof dashPlayer.setRepresentationForTypeByIndex === 'function') {
+        try {
+            dashPlayer.setRepresentationForTypeByIndex('video', qualityIndex, true);
+            return;
+        } catch (error) {
+            // Algunas versiones de dash.js exponen esta API pero no la aceptan con todos los manifiestos.
+        }
+    }
+
+    if (typeof dashPlayer.setQualityFor === 'function') {
+        try {
+            dashPlayer.setQualityFor('video', qualityIndex, true);
+            return;
+        } catch (error) {
+            // Compatibilidad con versiones antiguas: si falla, probamos con Representation.
+        }
+    }
+
+    if (typeof dashPlayer.setRepresentationForType === 'function' && typeof dashPlayer.getRepresentationsByType === 'function') {
+        const representations = dashPlayer.getRepresentationsByType('video') || [];
+        if (representations[qualityIndex]) {
+            try {
+                dashPlayer.setRepresentationForType('video', representations[qualityIndex], true);
+                return;
+            } catch (error) {
+                // Si tampoco funciona, se informa al usuario desde cambiarCalidadDash.
+            }
+        }
+    }
+
+    throw new Error('No hay API compatible para cambiar la calidad DASH.');
 }
 
 function crearOpcionCalidadDash(value, label, active) {
@@ -380,18 +414,24 @@ function marcarOpcionCalidadActiva(value) {
 }
 
 function actualizarModoAutoDash(activar) {
-    dashPlayer.updateSettings({
-        streaming: {
-            abr: {
-                autoSwitchBitrate: {
-                    video: activar
+    if (typeof dashPlayer.updateSettings === 'function') {
+        dashPlayer.updateSettings({
+            streaming: {
+                abr: {
+                    autoSwitchBitrate: {
+                        video: activar
+                    }
                 }
             }
-        }
-    });
+        });
+    }
 
     if (typeof dashPlayer.setAutoSwitchQualityFor === 'function') {
         dashPlayer.setAutoSwitchQualityFor('video', activar);
+    }
+
+    if (typeof dashPlayer.setAutoSwitchBitrateFor === 'function') {
+        dashPlayer.setAutoSwitchBitrateFor('video', activar);
     }
 }
 

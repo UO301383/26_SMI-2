@@ -43,6 +43,10 @@ async function cargarPlaylist() {
     }
 
     document.getElementById('playlist-count').textContent = playlistVideos.length + ' vídeos';
+    const firstLink = document.getElementById('playlist-first-link');
+    if (firstLink) {
+        firstLink.href = 'player.html?id=' + playlistVideos[0].id;
+    }
     renderPlaylist(playlistVideos);
 }
 
@@ -53,16 +57,26 @@ function renderPlaylist(playlistVideos) {
     playlistVideos.forEach(function (video, index) {
         const item = document.createElement('a');
         item.href = `player.html?id=${video.id}`;
-        item.className = 'card p-3 text-start border-0 text-decoration-none';
+        item.className = 'playlist-item text-start text-decoration-none';
         item.innerHTML = `
             <div class="d-flex align-items-start gap-3">
-                <img src="${video.thumbnail ? staticURL + video.thumbnail : ''}" alt="" class="rounded" style="width:96px;height:54px;object-fit:cover;background:#e9ecef;">
-                <div>
-                    <p class="fw-semibold mb-1 text-dark">${video.title || 'Sin título'}</p>
-                    <p class="text-muted mb-0 small">Usuario #${video.userId || '-'}</p>
+                <div class="playlist-index">${index + 1}</div>
+                <img src="${video.thumbnail ? staticURL + video.thumbnail : ''}" alt="" class="playlist-thumb">
+                <div class="min-width-0">
+                    <p class="fw-semibold mb-1 text-dark">${escaparHtml(video.title || 'Sin título')}</p>
+                    <p class="text-muted mb-0 small">Usuario #${video.userId || '-'} · Video #${video.id}</p>
                 </div>
             </div>
         `;
         list.appendChild(item);
     });
+}
+
+function escaparHtml(text) {
+    return String(text || '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
 }

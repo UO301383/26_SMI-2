@@ -81,6 +81,28 @@ document.addEventListener('DOMContentLoaded', async function () {
             await cargarVideos(termino);
         });
     }
+
+    const busquedaFormMobile = document.getElementById('busqueda-form-mobile');
+    if (busquedaFormMobile) {
+        busquedaFormMobile.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const termino = document.getElementById('busqueda-input-mobile').value;
+            document.getElementById('busqueda-input').value = termino;
+            await cargarVideos(termino);
+        });
+    }
+
+    const btnLimpiarBusqueda = document.getElementById('btn-limpiar-busqueda');
+    if (btnLimpiarBusqueda) {
+        btnLimpiarBusqueda.addEventListener('click', async function () {
+            document.getElementById('busqueda-input').value = '';
+            const inputMobile = document.getElementById('busqueda-input-mobile');
+            if (inputMobile) {
+                inputMobile.value = '';
+            }
+            await cargarVideos();
+        });
+    }
 });
 
 function obtenerMensajeError(response, fallback) {
@@ -107,22 +129,35 @@ function obtenerMensajeError(response, fallback) {
 
 async function cargarVideos(busqueda) {
     const grid = document.getElementById('video-grid');
-    grid.innerHTML = '<p class="text-muted">Cargando videos...</p>';
+    const catalogTitle = document.getElementById('catalog-title');
+    const contador = document.getElementById('contador-videos-home');
+    const btnLimpiarBusqueda = document.getElementById('btn-limpiar-busqueda');
+    const termino = busqueda ? busqueda.trim() : '';
 
-    const videos = await obtenerVideos(busqueda);
+    catalogTitle.textContent = termino ? 'Resultados para "' + termino + '"' : 'Últimos videos';
+    btnLimpiarBusqueda.classList.toggle('d-none', !termino);
+    grid.innerHTML = '<div class="col-12"><div class="home-empty-state">Cargando videos...</div></div>';
+
+    const videos = await obtenerVideos(termino);
+    contador.textContent = Array.isArray(videos) ? videos.length : 0;
 
     if (!videos || videos.length === 0) {
-        if (busqueda) {
+        if (termino) {
             grid.innerHTML = `
-                <div class="col-12 text-center py-5">
-                    <p class="fs-4 text-muted">No se encontraron vídeos para "${busqueda}".</p>
+                <div class="col-12">
+                    <div class="home-empty-state">
+                        <p class="fs-4 mb-1">No se encontraron vídeos para "${escaparHtml(termino)}".</p>
+                        <p class="text-muted small mb-0">Prueba con otro término o vuelve al catálogo completo.</p>
+                    </div>
                 </div>
             `;
         } else {
             grid.innerHTML = `
-                <div class="col-12 text-center py-5">
-                    <p class="fs-4 text-muted">No hay vídeos disponibles todavía.</p>
-                    <p class="text-muted small">¡Sé el primero en subir uno!</p>
+                <div class="col-12">
+                    <div class="home-empty-state">
+                        <p class="fs-4 mb-1">No hay vídeos disponibles todavía.</p>
+                        <p class="text-muted small mb-0">Sé el primero en subir uno.</p>
+                    </div>
                 </div>
             `;
         }
@@ -132,4 +167,13 @@ async function cargarVideos(busqueda) {
     videos.forEach(function (video) {
         grid.innerHTML += crearTarjeta(video);
     });
+}
+
+function escaparHtml(text) {
+    return String(text || '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
 }

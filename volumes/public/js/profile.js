@@ -7,13 +7,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     const usuario = obtenerUsuarioEnSesion();
 
     // muestra los datos del perfil
-    document.getElementById('nombre-usuario').textContent = usuario.username;
+    document.getElementById('nombre-usuario').textContent = usuario.name || usuario.username;
     document.getElementById('username-usuario').textContent = '@' + usuario.username;
+    pintarAvatarUsuario(usuario);
 
     //Pone el avatar del usuario si tiene uno, sino pone el avatar por defecto
-    if (usuario.icon) {
-        document.getElementById('avatar-usuario').src = staticURL + usuario.icon + '?t=' + Date.now();
-    }
     // carga los videos del usuario
     await cargarVideosUsuario(usuario.id);
 
@@ -52,7 +50,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const resAvatar=await subirArchivoAvatar(archivoAvatar);
                 if(resAvatar.icon){
                     usuario.icon = resAvatar.icon;
-                    document.getElementById('avatar-usuario').src = staticURL + resAvatar.icon + '?t=' + Date.now();
+                    pintarAvatarUsuario(usuario);
                 } else {
                     error.textContent=resAvatar.error || 'Error al actualizar la foto de perfil.';
                     btnConfirmarEditar.disabled=false;
@@ -71,12 +69,14 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 async function cargarVideosUsuario(idUsario) {
     const grid = document.getElementById('videos-usuario-grid');
-    grid.innerHTML = '<p class="text-center">Cargando videos...</p>';
+    const contador = document.getElementById('contador-videos');
+    grid.innerHTML = '<div class="col-12"><div class="profile-empty-state">Cargando videos...</div></div>';
 
     const videos = await obtenerVideosPorUsuario(idUsario);
+    contador.textContent = videos.length;
 
     if (videos.length === 0) {
-        grid.innerHTML = '<p class="text-center">No has subido ningún video aún.</p>';
+        grid.innerHTML = '<div class="col-12"><div class="profile-empty-state">No has subido ningún video aún.</div></div>';
         return;
     }
 
@@ -91,7 +91,7 @@ async function cargarVideosUsuario(idUsario) {
                         '<img src="' + thumbnail + '" class="card-img-top" style="aspect-ratio:16/9; object-fit:cover;" alt="Miniatura">' +
                     '</a>' +
                     '<div class="card-body px-2 py-2">' +
-                        '<p class="card-title fw-semibold text-dark mb-1" style="font-size:0.9rem;">' + video.title + '</p>' +
+                        '<p class="card-title fw-semibold text-dark mb-1" style="font-size:0.9rem;">' + escaparHtml(video.title) + '</p>' +
                         '<div class="d-flex justify-content-between align-items-center mt-2">' +
                             '<span class="text-muted" style="font-size:0.8rem;">' + new Date(video.createdAt).toLocaleDateString('es-ES') + '</span>' +
                             '<div>' +
@@ -103,6 +103,33 @@ async function cargarVideosUsuario(idUsario) {
                 '</div>' +
             '</div>';
     });
+}
+
+function pintarAvatarUsuario(usuario) {
+    const avatar = document.getElementById('avatar-usuario');
+    const fallback = document.getElementById('avatar-iniciales');
+    const inicial = (usuario.name || usuario.username || 'U').trim().charAt(0).toUpperCase();
+
+    fallback.textContent = inicial || 'U';
+
+    if (usuario.icon) {
+        avatar.src = staticURL + usuario.icon + '?t=' + Date.now();
+        avatar.classList.remove('d-none');
+        fallback.classList.add('d-none');
+    } else {
+        avatar.removeAttribute('src');
+        avatar.classList.add('d-none');
+        fallback.classList.remove('d-none');
+    }
+}
+
+function escaparHtml(text) {
+    return String(text || '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
 }
 
 async function borrarVideo(id) {
